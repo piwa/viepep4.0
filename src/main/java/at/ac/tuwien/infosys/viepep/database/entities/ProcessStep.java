@@ -24,6 +24,7 @@ import java.util.List;
 @Entity(name = "ProcessStep")
 @PrimaryKeyJoinColumn(name="id")
 @Table(name="ProcessStepElement")
+@DiscriminatorValue(value = "process_step")
 @Getter
 @Setter
 public class ProcessStep extends Element {

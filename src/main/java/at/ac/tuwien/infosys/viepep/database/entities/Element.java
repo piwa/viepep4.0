@@ -24,6 +24,7 @@ import java.util.List;
 @Entity
 @Table(name = "Element")
 @Inheritance(strategy = InheritanceType.JOINED)
+@DiscriminatorColumn(name = "TYPE")
 @XmlAccessorType(XmlAccessType.FIELD)
 @Getter
 @Setter

@@ -1,6 +1,7 @@
 package at.ac.tuwien.infosys.viepep.database.entities;
 
 
+import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 
 @XmlRootElement(name = "Sequence")
 @Entity(name = "Sequence")
+@DiscriminatorValue(value = "sequence")
 public class Sequence extends Element {
 
 

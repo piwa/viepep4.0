@@ -29,7 +29,7 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
 
     private static final long SERVICE_DEPLOY_TIME = 40000L;
     public static final Object SYNC_OBJECT = "Sync_Lock";
-    private static final boolean BASELINE_RUN = true;           // has to be true that the internal storage is filled first
+    private static final boolean BASELINE_RUN = false;           // has to be true that the internal storage is filled first
 
     private static final double EXTERNAL_CLOUD_FACTOR = 1000;
     private static long VM_STARTUP_TIME = 40000L;

@@ -3,6 +3,7 @@ package at.ac.tuwien.infosys.viepep.database.services;
 import at.ac.tuwien.infosys.viepep.database.entities.Element;
 import at.ac.tuwien.infosys.viepep.database.entities.WorkflowElement;
 import at.ac.tuwien.infosys.viepep.database.repositories.WorkflowElementRepository;
+import at.ac.tuwien.infosys.viepep.reasoning.optimisation.impl.PlacementHelperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -18,6 +19,8 @@ public class WorkflowDaoService {
 
     @Autowired
     private WorkflowElementRepository workflowElementRepository;
+    @Autowired
+    private PlacementHelperImpl placementHelperImpl;
 
     public void saveWorkflow(WorkflowElement workflow) {
         workflowElementRepository.save(workflow);
@@ -29,6 +32,7 @@ public class WorkflowDaoService {
 
     public void update(WorkflowElement workflow) {
         workflowElementRepository.save(workflow);
+        placementHelperImpl.getNextWorkflowInstances(true);
     }
 
     public List<WorkflowElement> getAllWorkflowElementsList() {

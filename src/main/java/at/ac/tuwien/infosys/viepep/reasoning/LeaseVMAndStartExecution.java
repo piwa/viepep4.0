@@ -46,7 +46,7 @@ public class LeaseVMAndStartExecution {
     private long startupTime;
 
 
-//    @Override
+    //    @Override
 //    public String call() throws Exception {
     @Async
     public Future<String> leaseVMAndStartExecution(VirtualMachine virtualMachine, List<ProcessStep> processSteps1) {
@@ -71,7 +71,7 @@ public class LeaseVMAndStartExecution {
         }
 
 
-        ReportingAction report = new ReportingAction(new Date(), virtualMachine.getName(), VMAction.START);
+        ReportingAction report =  new ReportingAction(new Date(), virtualMachine.getName(), VMAction.START);
         reportDaoService.save(report);
 
         if (address == null) {

@@ -64,12 +64,7 @@ public class ProcessInvocation {
             }
         }
     }
-/*
-    private Future<String> leaseVMAndStartExecution(VirtualMachine virtualMachine, List<ProcessStep> processSteps1) {
-        leas
-        return executor.submit(leaseVMAndStartExecution);
-    }
-*/
+
 
 
 }

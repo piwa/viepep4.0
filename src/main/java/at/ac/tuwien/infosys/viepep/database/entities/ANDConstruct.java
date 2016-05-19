@@ -1,5 +1,6 @@
 package at.ac.tuwien.infosys.viepep.database.entities;
 
+import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
@@ -18,6 +19,7 @@ import java.util.List;
 @Entity(name = "ANDConstruct")
 @PrimaryKeyJoinColumn(name="id")
 @Table(name="ANDConstructElement")
+@DiscriminatorValue(value = "and")
 public class ANDConstruct extends Element {
 
     /**

@@ -3,6 +3,7 @@ package at.ac.tuwien.infosys.viepep.reasoning;
 import at.ac.tuwien.infosys.viepep.database.entities.ProcessStep;
 import at.ac.tuwien.infosys.viepep.database.entities.VirtualMachine;
 import at.ac.tuwien.infosys.viepep.database.entities.WorkflowElement;
+import at.ac.tuwien.infosys.viepep.database.services.ElementDaoService;
 import at.ac.tuwien.infosys.viepep.database.services.ProcessStepDaoService;
 import at.ac.tuwien.infosys.viepep.database.services.WorkflowDaoService;
 import at.ac.tuwien.infosys.viepep.reasoning.dto.InvocationResultDTO;
@@ -31,6 +32,8 @@ public class ProcessExecution {
     @Autowired
     private WorkflowDaoService workflowDaoService;
     @Autowired
+    private ElementDaoService elementDaoService;
+    @Autowired
     private ProcessStepDaoService processStepDaoService;
 
     @Value("${simulate}")
@@ -39,6 +42,8 @@ public class ProcessExecution {
     @Async
     public void startExecution(ProcessStep processStep, VirtualMachine virtualMachine) {
         log.info("Task-Start: " + processStep);
+//        processStep.setStartDate(new Date());
+        processStepDaoService.update(processStep);
         if (simulate) {
             try {
                 Thread.sleep(processStep.getExecutionTime());
@@ -51,17 +56,23 @@ public class ProcessExecution {
         Date finishedAt = new Date();
         processStep.setFinishedAt(finishedAt);
         processStepDaoService.update(processStep);
+        log.info("Task-Done: " + processStep);
+
         if (processStep.isLastElement()) {
             log.info("Workflow done. Workflow Name: " + processStep.getWorkflowName());
             WorkflowElement workflowById = placementHelper.getWorkflowById(processStep.getWorkflowName());
             workflowById.setFinishedAt(finishedAt);
+
+            workflowById.getElements().get(0).setFinishedAt(finishedAt);        // TODO set all finishedAT of child elements of workflowByID
+            elementDaoService.update(workflowById.getElements().get(0));
+
             workflowDaoService.update(workflowById);
         }
 /*        else {
             processStepDaoService.update(processStep);
         }
 */
-        log.info("Task-Done: " + processStep);
+
     }
 
 }

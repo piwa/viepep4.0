@@ -43,17 +43,14 @@ public class PlacementHelperImpl implements PlacementHelper {
     @Override
     public List<WorkflowElement> getNextWorkflowInstances(boolean cleanup) {
 
+        List<WorkflowElement> newWorkflows = new ArrayList<>();
         if (nextWorkflows.isEmpty() || cleanup) {
-            nextWorkflows = new ArrayList<>();
             List<WorkflowElement> list = workflowDaoService.getList();
-            nextWorkflows.addAll(list);
+            newWorkflows.addAll(list);
         }
 
-        //first, update the nextWorkflows, only take those which are not yet done:
-        List<WorkflowElement> newWorkflows = new ArrayList<>();
         for (WorkflowElement workflow : nextWorkflows) {
-            List<Element> nextSteps = getNextSteps(workflow.getName());
-
+//            List<Element> nextSteps = getNextSteps(workflow.getName());
             if (workflow.getFinishedAt() == null) { //nextSteps != null && !nextSteps.isEmpty()) {
                 newWorkflows.add(workflow);
             }
