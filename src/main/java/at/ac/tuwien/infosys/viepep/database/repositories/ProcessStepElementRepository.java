@@ -1,0 +1,26 @@
+package at.ac.tuwien.infosys.viepep.database.repositories;
+
+import at.ac.tuwien.infosys.viepep.database.entities.ProcessStep;
+import at.ac.tuwien.infosys.viepep.database.entities.ServiceType;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.CrudRepository;
+
+import java.util.List;
+
+/**
+ * Created by philippwaibel on 17/05/16.
+ */
+public interface ProcessStepElementRepository extends CrudRepository<ProcessStep, Long> {
+
+    @Query("select distinct p.serviceType from ProcessStep p where p.serviceType is not null")
+    List<ServiceType> getProcessStepTypes();
+
+    @Query("select p from ProcessStep p where p.finishedAt is null and p.startDate is null")
+    List<ProcessStep> getUnfinishedSteps();
+
+    @Query("select p from ProcessStep p where p.id = ?1")
+    ProcessStep find(Long processStepId) ;
+
+    @Query("select p from ProcessStep p where p.scheduledAtVM.id = ?1")
+    List<ProcessStep> findByVM(Long virtualMachineId) ;
+}
