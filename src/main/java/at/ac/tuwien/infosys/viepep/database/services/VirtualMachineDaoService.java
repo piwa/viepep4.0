@@ -3,6 +3,7 @@ package at.ac.tuwien.infosys.viepep.database.services;
 import at.ac.tuwien.infosys.viepep.database.entities.VirtualMachine;
 import at.ac.tuwien.infosys.viepep.database.repositories.VirtualMachineRepository;
 import com.google.common.collect.Lists;
+import lombok.extern.log4j.Log4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -12,6 +13,7 @@ import java.util.List;
  * Created by philippwaibel on 17/05/16.
  */
 @Component
+@Log4j
 public class VirtualMachineDaoService {
 
     @Autowired
@@ -24,6 +26,7 @@ public class VirtualMachineDaoService {
     }
 
     public Iterable<VirtualMachine> saveVms(List<VirtualMachine> vms) {
+        log.info("Save VirtualMachines" );
         return virtualMachineRepository.save(vms);
     }
 

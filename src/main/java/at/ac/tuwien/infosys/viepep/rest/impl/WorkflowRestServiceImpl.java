@@ -2,6 +2,7 @@ package at.ac.tuwien.infosys.viepep.rest.impl;
 
 import at.ac.tuwien.infosys.viepep.database.entities.*;
 import at.ac.tuwien.infosys.viepep.database.services.WorkflowDaoService;
+import at.ac.tuwien.infosys.viepep.reasoning.optimisation.impl.ProcessInstancePlacementProblemServiceImpl;
 import at.ac.tuwien.infosys.viepep.rest.WorkflowRestService;
 import lombok.extern.log4j.Log4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,19 +41,22 @@ public class WorkflowRestServiceImpl implements WorkflowRestService {
     @RequestMapping( value="/addWorkflowRequests", method = RequestMethod.POST, consumes = MediaType.APPLICATION_XML_VALUE)
     public void addWorkflow(@RequestBody WorkflowElements workflowElement) {
 
-        try {
-            Date date = new Date();
-            log.info("Recieved new WorkflowElements: " + workflowElement.getWorkflowElements().size());
-            for (WorkflowElement element : workflowElement.getWorkflowElements()) {
+        synchronized (ProcessInstancePlacementProblemServiceImpl.SYNC_OBJECT) {
 
-                element.setArrivedAt(date);
-                update(element);
-                log.info("add new WorkflowElement: " + element.toString());
-                workflowDaoService.saveWorkflow(element);
-                log.info("Done: Add new WorkflowElement: " + element.toString());
+            try {
+                Date date = new Date();
+                log.info("Recieved new WorkflowElements: " + workflowElement.getWorkflowElements().size());
+                for (WorkflowElement element : workflowElement.getWorkflowElements()) {
+
+                    element.setArrivedAt(date);
+                    update(element);
+                    log.info("add new WorkflowElement: " + element.toString());
+                    workflowDaoService.saveWorkflow(element);
+                    log.info("Done: Add new WorkflowElement: " + element.toString());
+                }
+            } catch (Exception ex) {
+                log.error("EXCEPTION", ex);
             }
-        } catch (Exception ex) {
-            log.error("EXCEPTION", ex);
         }
     }
 

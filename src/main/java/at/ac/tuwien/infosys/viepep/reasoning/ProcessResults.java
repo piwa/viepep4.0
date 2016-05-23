@@ -13,7 +13,6 @@ import lombok.extern.log4j.Log4j;
 import net.sf.javailp.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -41,7 +40,7 @@ public class ProcessResults {//implements Runnable {
     private Result optimize;
     private Date tau_t;
 
-    @Async
+//    @Async
     public void processResults(Result optimize, Date tau_t) {
         this.optimize = optimize;
         this.tau_t = tau_t;
@@ -59,7 +58,7 @@ public class ProcessResults {//implements Runnable {
         StringBuilder stringBuilder2 = new StringBuilder();
 //        synchronized (this) {
         List<WorkflowElement> allWorkflowInstances = workflowDaoService.getAllWorkflowInstances();
-        stringBuilder2.append("------------------------ VMs running ----------------------------\n");
+        stringBuilder2.append("------------------------- VMs running ----------------------------\n");
         List<VirtualMachine> virtualMachines = placementHelper.getVMs(false);
         for(VirtualMachine vm : virtualMachines) {
             if(vm.isLeased() && vm.isStarted()) {
@@ -67,7 +66,7 @@ public class ProcessResults {//implements Runnable {
             }
         }
 
-        stringBuilder2.append("----------------------- Tasks running ---------------------------\n");
+        stringBuilder2.append("------------------------ Tasks running ---------------------------\n");
         List<VirtualMachine> vMs = placementHelper.getVMs(true);
         List<Element> nextSteps = workflowDaoService.getUnfinishedSteps();//placementHelper.getUnfinishedSteps();
         for (Element workflow : allWorkflowInstances) {
@@ -125,22 +124,22 @@ public class ProcessResults {//implements Runnable {
             }
 //            }
         }
-        stringBuilder2.append("------------------------- y results -----------------------------\n");
+        stringBuilder2.append("-------------------------- y results -----------------------------\n");
         for (String s : y) {
             stringBuilder2.append(s).append("=").append(optimize.get(s)).append("\n");
         }
-        stringBuilder2.append("---------- VM should be used (running or has to be started): ----\n");
+        stringBuilder2.append("----------- VM should be used (running or has to be started): ----\n");
         for (VirtualMachine virtualMachine : vmsToStart) {
             stringBuilder2.append(virtualMachine).append("\n");
         }
 
-        stringBuilder2.append("---------------------- Tasks to be started ----------------------\n");
+        stringBuilder2.append("----------------------- Tasks to be started ----------------------\n");
 
 
         for (ProcessStep processStep : scheduledForExecution) {
             stringBuilder2.append("Task-TODO: ").append(processStep).append("\n");
         }
-        stringBuilder2.append("-----------------------------------------------------------------\n");
+        stringBuilder2.append("------------------------------------------------------------------\n");
         log.info(stringBuilder2.toString().replaceAll("(\r\n|\n)", "\r\n                                                                                                     "));
 
         processInvocation.startInvocation(scheduledForExecution);

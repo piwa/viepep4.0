@@ -29,6 +29,10 @@ public class ViePepApplication implements CommandLineRunner {
 			boolean running = true;
 			boolean started = false;
 			String input = "";
+
+			started = true;
+			reasoningActivator.initialize();
+
 			while (running) {
 				System.out.println("-----------Enter 'start' to begin or 'stop' to end -------------");
 				input = scanner.nextLine();

@@ -44,4 +44,14 @@ public class Sequence extends Element {
     public ProcessStep getLastExecutedElement() {
         return elements.get(elements.size() - 1).getLastExecutedElement();
     }
+
+    @Override
+    public String toString() {
+        return "Sequence{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", elements=" + elements +
+                ", deadline=" + deadline +
+                '}';
+    }
 }

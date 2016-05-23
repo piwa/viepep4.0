@@ -56,5 +56,15 @@ public class XORConstruct extends Element {
             return subelement1.getLastExecutedElement();
         }
     }
+
+    @Override
+    public String toString() {
+        return "XOR{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", elements=" + elements +
+                ", deadline=" + deadline +
+                '}';
+    }
 }
 

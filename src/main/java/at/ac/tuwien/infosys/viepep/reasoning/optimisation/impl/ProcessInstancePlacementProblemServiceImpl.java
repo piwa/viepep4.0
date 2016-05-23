@@ -29,7 +29,7 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
 
     private static final long SERVICE_DEPLOY_TIME = 40000L;
     public static final Object SYNC_OBJECT = "Sync_Lock";
-    private static final boolean BASELINE_RUN = false;           // has to be true that the internal storage is filled first
+    private static final boolean BASELINE_RUN = true;           // has to be true that the internal storage is filled first
 
     private static final double EXTERNAL_CLOUD_FACTOR = 1000;
     private static long VM_STARTUP_TIME = 40000L;
@@ -96,6 +96,8 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
             }
         }
 
+        log.info("---- after initial");
+
         this.tau_t = tau_t;
 //        M = 100000 / 1000;
         M = 10000000;
@@ -147,6 +149,7 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
             });
         }
 
+        log.info("---- start solver");
         Result solve = solver.solve(problem);
 
         log.info("\n-------------------------\nSolved:   \n" + solve + "\n" +
@@ -155,6 +158,9 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
 
         int i = 0;
         StringBuilder vars = new StringBuilder();
+
+
+        log.info(printCollections());
 
         vars.append("\n-------------------------\nVariables " + "-------------------------\n");
         if (solve != null) {
@@ -184,6 +190,50 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
 
         }
         return solve;
+    }
+
+    private String printCollections() {
+
+        StringBuilder builder = new StringBuilder();
+
+        builder.append("------- collections ---------\n");
+
+        builder.append("\n--------- vmMap ---------");
+        for(Map.Entry<VMType, List<VirtualMachine>> vmMapEntry : vmMap.entrySet()) {
+
+            builder.append("\n").append(vmMapEntry.getKey()).append(":");
+            for(VirtualMachine vm : vmMapEntry.getValue()) {
+                builder.append("\n").append("     ").append(vm.toString());
+            }
+        }
+
+        builder.append("\n---- allRunningSteps ----");
+        for(Element element : allRunningSteps) {
+            builder.append("\n").append(element.toString());
+        }
+
+        builder.append("\n- nextWorkflowInstances -");
+        for(WorkflowElement workflowElement : nextWorkflowInstances) {
+            builder.append("\n").append(workflowElement.toString());
+        }
+
+        builder.append("\n------- nextSteps --------");
+        for(Map.Entry<String, List<Element>> nextStepEntry : nextSteps.entrySet()) {
+            builder.append("\n").append(nextStepEntry.getKey()).append(":");
+            for(Element element : nextStepEntry.getValue()) {
+                builder.append("\n").append("     ").append(element.toString());
+            }
+        }
+
+        builder.append("\n------ runningSteps -------");
+        for(Map.Entry<String, List<Element>> runningStepEntry : runningSteps.entrySet()) {
+            builder.append("\n").append(runningStepEntry.getKey()).append(":");
+            for(Element element : runningStepEntry.getValue()) {
+                builder.append("\n").append("     ").append(element.toString());
+            }
+        }
+
+        return builder.toString();
     }
 
 
@@ -805,7 +855,8 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
      */
     public List<WorkflowElement> getNextWorkflowInstances() {
         if (nextWorkflowInstances == null) {
-            nextWorkflowInstances = placementHelper.getNextWorkflowInstances(false);
+            log.info("getNextWorkflowInstances update");
+            nextWorkflowInstances = Collections.synchronizedList(new ArrayList<WorkflowElement>(placementHelper.getNextWorkflowInstances(false)));
         }
         return nextWorkflowInstances;
     }
@@ -822,7 +873,8 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
     private List<Element> getNextSteps(Element workflow) {
         List<Element> list = new ArrayList<>();
         if (!nextSteps.containsKey(workflow.getName())) {
-            List<Element> nextSteps1 = placementHelper.getNextSteps(workflow.getName());
+            log.info("getNextSteps update");
+            List<Element> nextSteps1 = Collections.synchronizedList(new ArrayList<Element>(placementHelper.getNextSteps(workflow.getName())));
             nextSteps.put(workflow.getName(), nextSteps1);
         }
         list.addAll(nextSteps.get(workflow.getName()));
@@ -835,7 +887,8 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
      */
     public List<Element> getRunningSteps(String workflowInstanceID) {
         if (!runningSteps.containsKey(workflowInstanceID)) {
-            List<Element> runningProcessSteps = placementHelper.getRunningProcessSteps(workflowInstanceID);
+            log.info("getRunningSteps update");
+            List<Element> runningProcessSteps = Collections.synchronizedList(new ArrayList<Element>(placementHelper.getRunningProcessSteps(workflowInstanceID)));
             runningSteps.put(workflowInstanceID, runningProcessSteps);
         }
         return runningSteps.get(workflowInstanceID);
@@ -901,6 +954,7 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
         ProcessStep processStep = (ProcessStep) step;
         long remainingExecutionTime = processStep.getRemainingExecutionTime(tau_t);
         if (processStep.isScheduled()) {
+            log.info("getRemainingExecutionTimeAndDeployTimes update");
             remainingExecutionTime += placementHelper.getRemainingSetupTime(processStep.getScheduledAtVM().getName(), tau_t);
         } else {
             remainingExecutionTime += SERVICE_DEPLOY_TIME + VM_STARTUP_TIME;

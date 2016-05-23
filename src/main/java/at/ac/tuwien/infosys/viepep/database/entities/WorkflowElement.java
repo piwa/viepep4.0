@@ -59,4 +59,15 @@ public class WorkflowElement extends Element {
         return lastExecutedMaxElement;
     }
 
+    @Override
+    public String toString() {
+        return "Workflow{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", arrivedAt='" + arrivedAt + '\'' +
+                ", elements=" + elements +
+                ", deadline=" + deadline +
+                '}';
+    }
+
 }

@@ -42,242 +42,274 @@ public class PlacementHelperImpl implements PlacementHelper {
 
     @Override
     public List<WorkflowElement> getNextWorkflowInstances(boolean cleanup) {
-
-        List<WorkflowElement> newWorkflows = new ArrayList<>();
-        if (nextWorkflows.isEmpty() || cleanup) {
+        synchronized (ProcessInstancePlacementProblemServiceImpl.SYNC_OBJECT) {
+            List<WorkflowElement> workflows = nextWorkflows;
+//        if (nextWorkflows.isEmpty() || cleanup) {
+            workflows = new ArrayList<>();
             List<WorkflowElement> list = workflowDaoService.getList();
-            newWorkflows.addAll(list);
-        }
+            workflows.addAll(list);
+//        }
 
-        for (WorkflowElement workflow : nextWorkflows) {
+
+            List<WorkflowElement> newWorkflows = new ArrayList<>();
+            for (WorkflowElement workflow : workflows) {
 //            List<Element> nextSteps = getNextSteps(workflow.getName());
-            if (workflow.getFinishedAt() == null) { //nextSteps != null && !nextSteps.isEmpty()) {
-                newWorkflows.add(workflow);
+                if (workflow.getFinishedAt() == null) { //nextSteps != null && !nextSteps.isEmpty()) {
+                    newWorkflows.add(workflow);
+                }
             }
+            nextWorkflows = newWorkflows;
+            return nextWorkflows;
         }
-        nextWorkflows = newWorkflows;
-        return nextWorkflows;
     }
 
     @Override
     public List<Element> getNextSteps(String workflowInstanceId) {
-
-        if (nextWorkflows.isEmpty()) {
+        synchronized (ProcessInstancePlacementProblemServiceImpl.SYNC_OBJECT) {
+//        if (nextWorkflows.isEmpty()) {
             getNextWorkflowInstances(false);
-        }
-        for (Element workflow : nextWorkflows) {
-            if (workflow.getName().equals(workflowInstanceId)) {
-                List<Element> nextStepElements = new ArrayList<>();
-                nextStepElements.addAll(getNextSteps(workflow));
-                return nextStepElements;
+//        }
+            for (Element workflow : nextWorkflows) {
+                if (workflow.getName().equals(workflowInstanceId)) {
+                    List<Element> nextStepElements = new ArrayList<>();
+                    nextStepElements.addAll(getNextSteps(workflow));
+                    return nextStepElements;
+                }
             }
+            return new ArrayList<>();
         }
-        return new ArrayList<>();
-
     }
 
     @Override
     public List<Element> getRunningProcessSteps(String workflowInstanceId) {
-
-        List<WorkflowElement> workflowInstances = getNextWorkflowInstances(false);
-        for (Element workflowInstance : workflowInstances) {
-            if (workflowInstance.getName().equals(workflowInstanceId)) {
-                List<Element> workflowElement = new ArrayList<>();
-                workflowElement.add(workflowInstance);
-                return getRunningProcessSteps(workflowElement);
+        synchronized (ProcessInstancePlacementProblemServiceImpl.SYNC_OBJECT) {
+            List<WorkflowElement> workflowInstances = getNextWorkflowInstances(false);
+            for (Element workflowInstance : workflowInstances) {
+                if (workflowInstance.getName().equals(workflowInstanceId)) {
+                    List<Element> workflowElement = new ArrayList<>();
+                    workflowElement.add(workflowInstance);
+                    return getRunningProcessSteps(workflowElement);
+                }
             }
+            return new ArrayList<>();
         }
-        return new ArrayList<>();
     }
 
     @Override
     public long getRemainingSetupTime(String vmId, Date now) {
-        for (VirtualMachine vm : virtualMachines) {
-            if (vm.getName().equals(vmId)) {
-                Date startedAt = vm.getStartedAt();
-                if (vm.isLeased() && startedAt != null && !vm.isStarted()) {
-                    long startupTime = vm.getStartupTime();
-                    long serviceDeployTime = vm.getDeployTime();
-                    long nowTime = now.getTime();
-                    long startedAtTime = startedAt.getTime();
-                    long remaining = (startedAtTime + startupTime + serviceDeployTime) - nowTime;
+        synchronized (ProcessInstancePlacementProblemServiceImpl.SYNC_OBJECT) {
+            for (VirtualMachine vm : virtualMachines) {
+                if (vm.getName().equals(vmId)) {
+                    Date startedAt = vm.getStartedAt();
+                    if (vm.isLeased() && startedAt != null && !vm.isStarted()) {
+                        long startupTime = vm.getStartupTime();
+                        long serviceDeployTime = vm.getDeployTime();
+                        long nowTime = now.getTime();
+                        long startedAtTime = startedAt.getTime();
+                        long remaining = (startedAtTime + startupTime + serviceDeployTime) - nowTime;
 
-                    if(remaining > 0) {         //should never be < 0
-                        return remaining;
-                    }
-                    else {
-                        return startedAtTime;
-                    }
+                        if (remaining > 0) {         //should never be < 0
+                            return remaining;
+                        }
+                        else {
+                            return startedAtTime;
+                        }
 
 //                    return remaining > 0 ? remaining : startupTime;  //should never be < 0
-                }
-                if (vm.isStarted()) {
-                    return 0;
+                    }
+                    if (vm.isStarted()) {
+                        return 0;
+                    }
                 }
             }
+            return 0;
         }
-        return 0;
     }
 
     @Override
     public List<Element> getRunningSteps(boolean update) {
-        if (allWorkflowInstances.isEmpty() || update) {
+        synchronized (ProcessInstancePlacementProblemServiceImpl.SYNC_OBJECT) {
+//        if (allWorkflowInstances.isEmpty() || update) {
             allWorkflowInstances = workflowDaoService.getAllWorkflowElementsList();
-        }
-        List<Element> running = new ArrayList<>();
-        for (WorkflowElement allWorkflowInstance : allWorkflowInstances) {
-            running.addAll(getRunningProcessSteps(allWorkflowInstance.getElements()));
-        }
+//        }
+            List<Element> running = new ArrayList<>();
+            for (WorkflowElement allWorkflowInstance : allWorkflowInstances) {
+                running.addAll(getRunningProcessSteps(allWorkflowInstance.getElements()));
+            }
 
-        return running;
+            return running;
+        }
     }
 
     @Override
     public void clear() {
-        virtualMachines = new ArrayList<>();
-        nextWorkflows = new ArrayList<>();
-        allWorkflowInstances = new ArrayList<>();
+        synchronized (ProcessInstancePlacementProblemServiceImpl.SYNC_OBJECT) {
+            virtualMachines = new ArrayList<>();
+            nextWorkflows = new ArrayList<>();
+            allWorkflowInstances = new ArrayList<>();
+        }
     }
 
     private List<Element> getRunningProcessSteps(List<Element> elements) {
-        List<Element> steps = new ArrayList<>();
-        for (Element element : elements) {
-            if (element instanceof ProcessStep) {
-                if (((ProcessStep) element).getStartDate() != null && ((ProcessStep) element).getFinishedAt() == null) {
-                    if (!steps.contains(element)) {
-                        steps.add(element);
+        synchronized (ProcessInstancePlacementProblemServiceImpl.SYNC_OBJECT) {
+            List<Element> steps = new ArrayList<>();
+            for (Element element : elements) {
+                if (element instanceof ProcessStep) {
+                    if (((ProcessStep) element).getStartDate() != null && ((ProcessStep) element).getFinishedAt() == null) {
+                        if (!steps.contains(element)) {
+                            steps.add(element);
+                        }
                     }
-                } else {
-                    //ignore
+                    else {
+                        //ignore
+                    }
                 }
-            } else {
-                steps.addAll(getRunningProcessSteps(element.getElements()));
-            }
+                else {
+                    steps.addAll(getRunningProcessSteps(element.getElements()));
+                }
 
+            }
+            return steps;
         }
-        return steps;
     }
 
     @Override
     public List<VirtualMachine> getVMs(boolean update) {
-        if (virtualMachines.isEmpty() || update) {
+        synchronized (ProcessInstancePlacementProblemServiceImpl.SYNC_OBJECT) {
+//        if (virtualMachines.isEmpty() || update) {
             virtualMachines = virtualMachineDaoService.getAllVms();
+//        }
+            return virtualMachines;
         }
-        return virtualMachines;
-
     }
 
     @Override
     public WorkflowElement getWorkflowById(String workflowInstanceId) {
-        if (nextWorkflows.isEmpty()) {
+        synchronized (ProcessInstancePlacementProblemServiceImpl.SYNC_OBJECT) {
+//        if (nextWorkflows.isEmpty()) {
             getNextWorkflowInstances(false);
-        }
-        for (WorkflowElement nextWorkflow : nextWorkflows) {
-            if (nextWorkflow.getName().equals(workflowInstanceId)) {
-                return nextWorkflow;
+//        }
+            for (WorkflowElement nextWorkflow : nextWorkflows) {
+                if (nextWorkflow.getName().equals(workflowInstanceId)) {
+                    return nextWorkflow;
+                }
             }
+            return null;
         }
-        return null;
     }
 
     @Override
     public void terminateVM(VirtualMachine virtualMachine) {
-        if (!simulate) {
-            viePEPClientService.terminateInstanceByIP(virtualMachine.getIpAddress());
-        }
-        virtualMachine.terminate();
+        synchronized (ProcessInstancePlacementProblemServiceImpl.SYNC_OBJECT) {
+            if (!simulate) {
+                viePEPClientService.terminateInstanceByIP(virtualMachine.getIpAddress());
+            }
+            virtualMachine.terminate();
 
-        virtualMachineDaoService.update(virtualMachine);
-        ReportingAction report = new ReportingAction(new Date(), virtualMachine.getName(), VMAction.STOPPED);
-        reportDaoService.save(report);
+            virtualMachineDaoService.update(virtualMachine);
+            ReportingAction report = new ReportingAction(new Date(), virtualMachine.getName(), VMAction.STOPPED);
+            reportDaoService.save(report);
+        }
     }
 
     private List<Element> getNextSteps(Element workflow) {           // TODO split into several methods
-        List<Element> nextSteps = new ArrayList<>();
-        if (workflow instanceof ProcessStep) {
-            if (!((ProcessStep) workflow).hasBeenExecuted() && ((ProcessStep) workflow).getStartDate() == null) {
-                nextSteps.add(workflow);
-            }
-            return nextSteps;
-        }
-        for (Element element : workflow.getElements()) {
-            if (element instanceof ProcessStep) {
-                if ((!((ProcessStep) element).hasBeenExecuted()) && (((ProcessStep) element).getStartDate() == null)) {
-                    nextSteps.add(element);
-                    return nextSteps;
-                } else if ((((ProcessStep) element).getStartDate() != null) && ((ProcessStep) element).getFinishedAt() == null) {
-                    //Step is still running, ignore next step
-                    return nextSteps;
+        synchronized (ProcessInstancePlacementProblemServiceImpl.SYNC_OBJECT) {
+            List<Element> nextSteps = new ArrayList<>();
+            if (workflow instanceof ProcessStep) {
+                if (!((ProcessStep) workflow).hasBeenExecuted() && ((ProcessStep) workflow).getStartDate() == null) {
+                    nextSteps.add(workflow);
                 }
-            } else {
-                List<Element> elementList = element.getElements();
-                if (element instanceof ANDConstruct) {
-                    for (Element subElement : elementList) {
-                        nextSteps.addAll(getNextSteps(subElement));
+                return nextSteps;
+            }
+            for (Element element : workflow.getElements()) {
+                if (element instanceof ProcessStep) {
+                    if ((!((ProcessStep) element).hasBeenExecuted()) && (((ProcessStep) element).getStartDate() == null)) {
+                        nextSteps.add(element);
+                        return nextSteps;
                     }
-                } else if (element instanceof XORConstruct) {
-                    int size = elementList.size();
-                    if (element.getParent().getNextXOR() == null) {
-                        Random random = new Random();
-                        int i = random.nextInt(size);
-                        Element subelement1 = elementList.get(i);
-                        element.getParent().setNextXOR(subelement1);
-                        nextSteps.addAll(getNextSteps(subelement1));
-                        elementDaoService.update(element.getParent());
-
-                    } else {
-                        Element subelement1 = element.getParent().getNextXOR();
-                        nextSteps.addAll(getNextSteps(subelement1));
+                    else if ((((ProcessStep) element).getStartDate() != null) && ((ProcessStep) element).getFinishedAt() == null) {
+                        //Step is still running, ignore next step
+                        return nextSteps;
                     }
-                } else if (element instanceof LoopConstruct) {
-                    LoopConstruct loopConstruct = (LoopConstruct) element;
-                    for (Element subElement : elementList) {
-                        if (subElement instanceof ProcessStep) {
-                            ProcessStep processStep = (ProcessStep) subElement;
-
-                            if (!(processStep).hasBeenExecuted() && (processStep).getStartDate() == null) {
-                                nextSteps.add(processStep);
-                                return nextSteps;
-                            } else {
-                                boolean lastElement = subElement.equals(elementList.get(elementList.size() - 1));
-                                Random random = new Random();
-                                boolean rand = random.nextInt(2) == 1;
-                                if (lastElement && loopConstruct.getNumberOfIterationsInWorstCase() > loopConstruct.getIterations() && rand) {
-                                    loopConstruct.setIterations(loopConstruct.getIterations() + 1);
-                                    nextSteps.add(elementList.get(0));
-                                    resetChilder(elementList);
-
-                                    elementDaoService.update(workflow);
-                                    return nextSteps;
-                                }
-                            }
-                        } else {
+                }
+                else {
+                    List<Element> elementList = element.getElements();
+                    if (element instanceof ANDConstruct) {
+                        for (Element subElement : elementList) {
                             nextSteps.addAll(getNextSteps(subElement));
                         }
                     }
+                    else if (element instanceof XORConstruct) {
+                        int size = elementList.size();
+                        if (element.getParent().getNextXOR() == null) {
+                            Random random = new Random();
+                            int i = random.nextInt(size);
+                            Element subelement1 = elementList.get(i);
+                            element.getParent().setNextXOR(subelement1);
+                            nextSteps.addAll(getNextSteps(subelement1));
+                            elementDaoService.update(element.getParent());
 
-                } else { //sequence
-                    nextSteps.addAll(getNextSteps(element));
+                        }
+                        else {
+                            Element subelement1 = element.getParent().getNextXOR();
+                            nextSteps.addAll(getNextSteps(subelement1));
+                        }
+                    }
+                    else if (element instanceof LoopConstruct) {
+                        LoopConstruct loopConstruct = (LoopConstruct) element;
+                        for (Element subElement : elementList) {
+                            if (subElement instanceof ProcessStep) {
+                                ProcessStep processStep = (ProcessStep) subElement;
+
+                                if (!(processStep).hasBeenExecuted() && (processStep).getStartDate() == null) {
+                                    nextSteps.add(processStep);
+                                    return nextSteps;
+                                }
+                                else {
+                                    boolean lastElement = subElement.equals(elementList.get(elementList.size() - 1));
+                                    Random random = new Random();
+                                    boolean rand = random.nextInt(2) == 1;
+                                    if (lastElement && loopConstruct.getNumberOfIterationsInWorstCase() > loopConstruct.getIterations() && rand) {
+                                        loopConstruct.setIterations(loopConstruct.getIterations() + 1);
+                                        nextSteps.add(elementList.get(0));
+                                        resetChilder(elementList);
+
+                                        elementDaoService.update(workflow);
+                                        return nextSteps;
+                                    }
+                                }
+                            }
+                            else {
+                                nextSteps.addAll(getNextSteps(subElement));
+                            }
+                        }
+
+                    }
+                    else { //sequence
+                        nextSteps.addAll(getNextSteps(element));
+                    }
+                }
+                if (nextSteps.size() > 0) {
+                    return nextSteps;
                 }
             }
-            if (nextSteps.size() > 0) {
-                return nextSteps;
-            }
+            return nextSteps;
         }
-        return nextSteps;
     }
 
     private void resetChilder(List<Element> elementList) {
-        if (elementList != null) {
-            for (Element element : elementList) {
-                if (element instanceof ProcessStep) {
-                    ((ProcessStep) element).reset();
+        synchronized (ProcessInstancePlacementProblemServiceImpl.SYNC_OBJECT) {
+            if (elementList != null) {
+                for (Element element : elementList) {
+                    if (element instanceof ProcessStep) {
+                        ((ProcessStep) element).reset();
 
-                } else {
-                    resetChilder(element.getElements());
+                    }
+                    else {
+                        resetChilder(element.getElements());
+                    }
                 }
             }
         }
     }
-
 }

@@ -71,4 +71,14 @@ public class ANDConstruct extends Element {
         return lastExecutedMaxElement;
     }
 
+    @Override
+    public String toString() {
+        return "AND{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", elements=" + elements +
+                ", deadline=" + deadline +
+                '}';
+    }
+
 }

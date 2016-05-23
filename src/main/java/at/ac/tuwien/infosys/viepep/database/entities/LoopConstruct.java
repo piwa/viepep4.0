@@ -47,4 +47,14 @@ public class LoopConstruct extends Element {
         return elements.get(elements.size() - 1).getLastExecutedElement();
     }
 
+    @Override
+    public String toString() {
+        return "Loop{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", elements=" + elements +
+                ", deadline=" + deadline +
+                '}';
+    }
+
 }

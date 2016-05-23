@@ -1,5 +1,6 @@
 package at.ac.tuwien.infosys.viepep.reasoning;
 
+import at.ac.tuwien.infosys.viepep.database.entities.Element;
 import at.ac.tuwien.infosys.viepep.database.entities.ProcessStep;
 import at.ac.tuwien.infosys.viepep.database.entities.VirtualMachine;
 import at.ac.tuwien.infosys.viepep.database.entities.WorkflowElement;
@@ -16,6 +17,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by philippwaibel on 18/05/16.
@@ -61,12 +63,16 @@ public class ProcessExecution {
         if (processStep.isLastElement()) {
             log.info("Workflow done. Workflow Name: " + processStep.getWorkflowName());
             WorkflowElement workflowById = placementHelper.getWorkflowById(processStep.getWorkflowName());
-            workflowById.setFinishedAt(finishedAt);
+            List<Element> nextSteps = placementHelper.getNextSteps(processStep.getWorkflowName());
+            if(nextSteps == null || nextSteps.isEmpty()) {
+                workflowById.setFinishedAt(finishedAt);                             // TODO nullpointer if there are more than one end element
+                workflowDaoService.update(workflowById);
+            }
 
-            workflowById.getElements().get(0).setFinishedAt(finishedAt);        // TODO set all finishedAT of child elements of workflowByID
-            elementDaoService.update(workflowById.getElements().get(0));
+//            workflowById.getElements().get(0).setFinishedAt(finishedAt);        // TODO set all finishedAT of child elements of workflowByID
+//            elementDaoService.update(workflowById.getElements().get(0));
 
-            workflowDaoService.update(workflowById);
+
         }
 /*        else {
             processStepDaoService.update(processStep);

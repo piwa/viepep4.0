@@ -4,6 +4,7 @@ import at.ac.tuwien.infosys.viepep.database.entities.Element;
 import at.ac.tuwien.infosys.viepep.database.entities.WorkflowElement;
 import at.ac.tuwien.infosys.viepep.database.repositories.WorkflowElementRepository;
 import at.ac.tuwien.infosys.viepep.reasoning.optimisation.impl.PlacementHelperImpl;
+import lombok.extern.log4j.Log4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -15,6 +16,7 @@ import java.util.List;
  * Created by philippwaibel on 17/05/16.
  */
 @Component
+@Log4j
 public class WorkflowDaoService {
 
     @Autowired
@@ -23,6 +25,7 @@ public class WorkflowDaoService {
     private PlacementHelperImpl placementHelperImpl;
 
     public void saveWorkflow(WorkflowElement workflow) {
+        log.info("Save workflowElement: " + workflow.toString());
         workflowElementRepository.save(workflow);
     }
 
@@ -31,6 +34,7 @@ public class WorkflowDaoService {
     }
 
     public void update(WorkflowElement workflow) {
+        log.info("Update workflowElement: " + workflow.toString());
         workflowElementRepository.save(workflow);
         placementHelperImpl.getNextWorkflowInstances(true);
     }

@@ -53,7 +53,7 @@ public class ViePEPOpenstackClientServiceImpl implements ViePEPOpenstackClientSe
     private boolean enabled = false;
 
     private ViePEPOpenstackClientServiceImpl() {
-        init();
+//        init();
     }
     
     private void loadSettings() {
