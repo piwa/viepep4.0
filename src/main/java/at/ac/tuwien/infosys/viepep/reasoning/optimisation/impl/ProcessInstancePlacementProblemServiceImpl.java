@@ -7,7 +7,7 @@ import at.ac.tuwien.infosys.viepep.reasoning.optimisation.ProcessInstancePlaceme
 import ilog.concert.IloException;
 import ilog.concert.IloNumVar;
 import ilog.cplex.IloCplex;
-import lombok.extern.log4j.Log4j;
+import lombok.extern.slf4j.Slf4j;
 import net.sf.javailp.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -18,7 +18,7 @@ import java.util.*;
 /**
  * Created by Philipp Hoenisch on 4/15/14.
  */
-@Log4j
+@Slf4j
 @Component
 public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoader implements ProcessInstancePlacementProblemService {
 
@@ -37,7 +37,7 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
     private static final double OMEGA_F_C_VALUE = 0.001;
 
     private Date tau_t;
-    private static final long TIMESLOT_DURATION = 30 * 1000; //timeslot duration is minimum 1 minute
+    private static final long TIMESLOT_DURATION = 30 * 1000 * 5; //timeslot duration is minimum 1 minute
     public static final long LEASING_DURATION = 60 * 1000 * 5; //timeslot duration is minimum 5 minutes
 
     private int V = 0;
@@ -96,100 +96,102 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
             }
         }
 
-        log.info("---- after initial");
+            log.info("---- after initial");
 
-        this.tau_t = tau_t;
+            this.tau_t = tau_t;
 //        M = 100000 / 1000;
-        M = 10000000;
-        SolverFactory factory;
-        if (useCPLEX) {
-            factory = new SolverFactoryCPLEX();//use cplex
-        } else {
-            factory = new SolverFactoryLpSolve();//use lp solve
-        }
+            M = 10000000;
+            SolverFactory factory;
+            if (useCPLEX) {
+                factory = new SolverFactoryCPLEX();//use cplex
+            }
+            else {
+                factory = new SolverFactoryLpSolve();//use lp solve
+            }
 //        factory.setParameter(Solver.POSTSOLVE, 2);
-        factory.setParameter(Solver.VERBOSE, 1);
-        factory.setParameter(Solver.TIMEOUT, 600); // set timeout to 600 seconds
+            factory.setParameter(Solver.VERBOSE, 1);
+            factory.setParameter(Solver.TIMEOUT, 600); // set timeout to 600 seconds
 
-        problem = new Problem();
-        addObjective_1(problem);
-        addConstraint_2(problem);
-        addConstraint_3(problem); //DS: constraints 4-7 are realized implicitly by the recursive method generateConstraintsForCalculatingExecutionTime
-        addConstraint_4(problem);
-        addConstraint_12(problem);
-        addConstraint_13(problem);
-        addConstraint_14_16(problem);
-        addConstraint_15_17(problem);
-        addConstraint_18(problem);
-        addConstraint_19(problem);
-        addConstraint_20(problem);
-        addConstraint_21(problem);
-        addConstraint_22(problem);
-        addConstraint_23(problem);
-        addConstraint_24(problem);
-        addConstraint_25(problem);
-        addConstraint_26(problem);
-        addConstraint_27(problem);
-        addConstraint_28(problem);
-        addConstraint_29(problem);
-        addConstraint_30(problem);
-        addConstraint_31(problem);
+            problem = new Problem();
+            addObjective_1(problem);
+            addConstraint_2(problem);
+            addConstraint_3(problem); //DS: constraints 4-7 are realized implicitly by the recursive method generateConstraintsForCalculatingExecutionTime
+            addConstraint_4(problem);
+            addConstraint_12(problem);
+            addConstraint_13(problem);
+            addConstraint_14_16(problem);
+            addConstraint_15_17(problem);
+            addConstraint_18(problem);
+            addConstraint_19(problem);
+            addConstraint_20(problem);
+            addConstraint_21(problem);
+            addConstraint_22(problem);
+            addConstraint_23(problem);
+            addConstraint_24(problem);
+            addConstraint_25(problem);
+            addConstraint_26(problem);
+            addConstraint_27(problem);
+            addConstraint_28(problem);
+            addConstraint_29(problem);
+            addConstraint_30(problem);
+            addConstraint_31(problem);
 
-        Solver solver = new ViePEPSolverCPLEX(); // factory.get();
-        if (useCPLEX) {
-            ((SolverCPLEX) solver).addHook(new SolverCPLEX.Hook() {
-                @Override
-                public void call(IloCplex cplex, Map<Object, IloNumVar> varToNum) {
-                    try {
-                        cplex.setParam(IloCplex.DoubleParam.TiLim, 60);
-                    } catch (IloException e) {
-                        e.printStackTrace();
+            Solver solver = new ViePEPSolverCPLEX(); // factory.get();
+            if (useCPLEX) {
+                ((SolverCPLEX) solver).addHook(new SolverCPLEX.Hook() {
+                    @Override
+                    public void call(IloCplex cplex, Map<Object, IloNumVar> varToNum) {
+                        try {
+                            cplex.setParam(IloCplex.DoubleParam.TiLim, 60);
+                        } catch (IloException e) {
+                            e.printStackTrace();
+                        }
                     }
+                });
+            }
+
+            log.info("---- start solver");
+            Result solve = solver.solve(problem);
+
+            log.info("\n-------------------------\nSolved:   \n" + solve + "\n" +
+                    "-------------------------\n");
+
+
+            int i = 0;
+            StringBuilder vars = new StringBuilder();
+
+
+            log.info(printCollections());
+
+            vars.append("\n-------------------------\nVariables " + "-------------------------\n");
+            if (solve != null) {
+                for (Object variable : problem.getVariables()) {
+                    vars.append(i).append(": ").append(variable).append("=").append(solve.get(variable)).append(", ");
+                    i++;
                 }
-            });
-        }
-
-        log.info("---- start solver");
-        Result solve = solver.solve(problem);
-
-        log.info("\n-------------------------\nSolved:   \n" + solve + "\n" +
-                "-------------------------\n");
-
-
-        int i = 0;
-        StringBuilder vars = new StringBuilder();
-
-
-        log.info(printCollections());
-
-        vars.append("\n-------------------------\nVariables " + "-------------------------\n");
-        if (solve != null) {
-            for (Object variable : problem.getVariables()) {
-                vars.append(i).append(": ").append(variable).append("=").append(solve.get(variable)).append(", ");
-                i++;
-            }
-            log.info(vars.toString());
-            log.info("\n-------------------------\n--------- " + "-------------------------\n");
-        }
-
-
-        if (solve == null) {
-            System.out.println("\n-----------------------------\n");
-            Collection<Object> variables = problem.getVariables();
-            i = 0;
-            for (Object variable : variables) {
-                System.out.println(i + " " + variable);
-                i++;
+                log.info(vars.toString());
+                log.info("\n-------------------------\n--------- " + "-------------------------\n");
             }
 
-            System.out.println("\n-----------------------------\n");
-            System.out.println(problem.getConstraints());
-            System.out.println("\n-----------------------------\n");
-            System.out.println(problem.getObjective());
-            System.out.println("\n-----------------------------\n");
 
-        }
-        return solve;
+            if (solve == null) {
+                System.out.println("\n-----------------------------\n");
+                Collection<Object> variables = problem.getVariables();
+                i = 0;
+                for (Object variable : variables) {
+                    System.out.println(i + " " + variable);
+                    i++;
+                }
+
+                System.out.println("\n-----------------------------\n");
+                System.out.println(problem.getConstraints());
+                System.out.println("\n-----------------------------\n");
+                System.out.println(problem.getObjective());
+                System.out.println("\n-----------------------------\n");
+
+            }
+            return solve;
+
     }
 
     private String printCollections() {

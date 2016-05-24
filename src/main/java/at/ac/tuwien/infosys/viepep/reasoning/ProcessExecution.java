@@ -9,7 +9,7 @@ import at.ac.tuwien.infosys.viepep.database.services.ProcessStepDaoService;
 import at.ac.tuwien.infosys.viepep.database.services.WorkflowDaoService;
 import at.ac.tuwien.infosys.viepep.reasoning.dto.InvocationResultDTO;
 import at.ac.tuwien.infosys.viepep.reasoning.optimisation.PlacementHelper;
-import lombok.extern.log4j.Log4j;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
@@ -24,7 +24,7 @@ import java.util.List;
  */
 @Component
 @Scope("prototype")
-@Log4j
+@Slf4j
 public class ProcessExecution {
 
     @Autowired
@@ -63,8 +63,9 @@ public class ProcessExecution {
         if (processStep.isLastElement()) {
             log.info("Workflow done. Workflow Name: " + processStep.getWorkflowName());
             WorkflowElement workflowById = placementHelper.getWorkflowById(processStep.getWorkflowName());
+            List<Element> runningSteps = placementHelper.getRunningProcessSteps(processStep.getWorkflowName());
             List<Element> nextSteps = placementHelper.getNextSteps(processStep.getWorkflowName());
-            if(nextSteps == null || nextSteps.isEmpty()) {
+            if((nextSteps == null || nextSteps.isEmpty()) && (runningSteps == null || runningSteps.isEmpty())) {
                 workflowById.setFinishedAt(finishedAt);                             // TODO nullpointer if there are more than one end element
                 workflowDaoService.update(workflowById);
             }

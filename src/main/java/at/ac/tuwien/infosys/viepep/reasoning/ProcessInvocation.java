@@ -4,7 +4,7 @@ import at.ac.tuwien.infosys.viepep.database.entities.ProcessStep;
 import at.ac.tuwien.infosys.viepep.database.entities.VirtualMachine;
 import at.ac.tuwien.infosys.viepep.database.services.ProcessStepDaoService;
 import at.ac.tuwien.infosys.viepep.database.services.VirtualMachineDaoService;
-import lombok.extern.log4j.Log4j;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -15,7 +15,7 @@ import java.util.concurrent.Future;
 /**
  * Created by philippwaibel on 18/05/16.
  */
-@Log4j
+@Slf4j
 @Component
 public class ProcessInvocation {
 

@@ -4,15 +4,17 @@ import at.ac.tuwien.infosys.viepep.database.entities.Element;
 import at.ac.tuwien.infosys.viepep.database.entities.ProcessStep;
 import at.ac.tuwien.infosys.viepep.database.entities.VirtualMachine;
 import at.ac.tuwien.infosys.viepep.database.entities.WorkflowElement;
+import at.ac.tuwien.infosys.viepep.database.services.ProcessStepDaoService;
 import at.ac.tuwien.infosys.viepep.database.services.VirtualMachineDaoService;
 import at.ac.tuwien.infosys.viepep.database.services.WorkflowDaoService;
 import at.ac.tuwien.infosys.viepep.reasoning.optimisation.PlacementHelper;
 import at.ac.tuwien.infosys.viepep.reasoning.optimisation.impl.ProcessInstancePlacementProblemServiceImpl;
 import lombok.Setter;
-import lombok.extern.log4j.Log4j;
+import lombok.extern.slf4j.Slf4j;
 import net.sf.javailp.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -22,7 +24,7 @@ import java.util.List;
 /**
  * Created by philippwaibel on 18/05/16.
  */
-@Log4j
+@Slf4j
 @Component
 @Scope("prototype")
 @Setter
@@ -33,6 +35,8 @@ public class ProcessResults {//implements Runnable {
     @Autowired
     private WorkflowDaoService workflowDaoService;
     @Autowired
+    private ProcessStepDaoService processStepDaoService;
+    @Autowired
     private VirtualMachineDaoService virtualMachineDaoService;
     @Autowired
     private ProcessInvocation processInvocation;
@@ -40,7 +44,7 @@ public class ProcessResults {//implements Runnable {
     private Result optimize;
     private Date tau_t;
 
-//    @Async
+    @Async
     public void processResults(Result optimize, Date tau_t) {
         this.optimize = optimize;
         this.tau_t = tau_t;
@@ -68,7 +72,7 @@ public class ProcessResults {//implements Runnable {
 
         stringBuilder2.append("------------------------ Tasks running ---------------------------\n");
         List<VirtualMachine> vMs = placementHelper.getVMs(true);
-        List<Element> nextSteps = workflowDaoService.getUnfinishedSteps();//placementHelper.getUnfinishedSteps();
+        List<ProcessStep> nextSteps = processStepDaoService.getUnfinishedSteps();//workflowDaoService.getUnfinishedSteps();
         for (Element workflow : allWorkflowInstances) {
             List<Element> runningSteps = placementHelper.getRunningProcessSteps(workflow.getName());
             for (Element runningStep : runningSteps) {

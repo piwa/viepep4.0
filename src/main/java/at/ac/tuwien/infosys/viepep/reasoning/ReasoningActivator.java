@@ -5,7 +5,7 @@ import at.ac.tuwien.infosys.viepep.database.entities.VirtualMachine;
 import at.ac.tuwien.infosys.viepep.database.entities.WorkflowElement;
 import at.ac.tuwien.infosys.viepep.database.services.VirtualMachineDaoService;
 import at.ac.tuwien.infosys.viepep.database.services.WorkflowDaoService;
-import lombok.extern.log4j.Log4j;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -19,7 +19,7 @@ import java.util.List;
  */
 @Component
 @Scope("prototype")
-@Log4j
+@Slf4j
 public class ReasoningActivator {
 
     @Autowired

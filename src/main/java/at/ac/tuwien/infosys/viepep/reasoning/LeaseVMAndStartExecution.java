@@ -8,7 +8,7 @@ import at.ac.tuwien.infosys.viepep.database.entities.VirtualMachine;
 import at.ac.tuwien.infosys.viepep.database.services.ProcessStepDaoService;
 import at.ac.tuwien.infosys.viepep.database.services.ReportDaoService;
 import at.ac.tuwien.infosys.viepep.database.services.VirtualMachineDaoService;
-import lombok.extern.log4j.Log4j;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
@@ -26,7 +26,7 @@ import java.util.concurrent.Future;
  */
 @Component
 @Scope("prototype")
-@Log4j
+@Slf4j
 public class LeaseVMAndStartExecution {
 
     @Autowired
@@ -75,7 +75,6 @@ public class LeaseVMAndStartExecution {
         reportDaoService.save(report);
 
         if (address == null) {
-
 //                            throw new Exception("server could not be started, rollback");
             log.error("VM was not started, reset task: " + virtualMachine.getName());
             List<ProcessStep> processStepList = processStepDaoService.findByVM(virtualMachine);

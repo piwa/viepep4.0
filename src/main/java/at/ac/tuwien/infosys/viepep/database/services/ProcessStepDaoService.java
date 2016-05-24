@@ -4,8 +4,7 @@ import at.ac.tuwien.infosys.viepep.database.entities.ProcessStep;
 import at.ac.tuwien.infosys.viepep.database.entities.ServiceType;
 import at.ac.tuwien.infosys.viepep.database.entities.VirtualMachine;
 import at.ac.tuwien.infosys.viepep.database.repositories.ProcessStepElementRepository;
-import at.ac.tuwien.infosys.viepep.reasoning.optimisation.impl.PlacementHelperImpl;
-import lombok.extern.log4j.Log4j;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -15,18 +14,16 @@ import java.util.List;
  * Created by philippwaibel on 17/05/16.
  */
 @Component
-@Log4j
+@Slf4j
 public class ProcessStepDaoService {
 
     @Autowired
     private ProcessStepElementRepository processStepElementRepository;
-    @Autowired
-    private PlacementHelperImpl placementHelperImpl;
 
     public void update(ProcessStep processStep) {
-        log.info("Save processStep: " + processStep.toString());
-        processStepElementRepository.save(processStep);
-        placementHelperImpl.getNextWorkflowInstances(true);
+            log.info("Save processStep: " + processStep.toString());
+            processStepElementRepository.save(processStep);
+//            placementHelperImpl.getNextWorkflowInstances(true);
     }
 
     public List<ServiceType> getProcessStepTypes() {

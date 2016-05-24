@@ -11,7 +11,7 @@ import com.woorea.openstack.keystone.model.Access;
 import com.woorea.openstack.keystone.utils.KeystoneUtils;
 import com.woorea.openstack.nova.Nova;
 import com.woorea.openstack.nova.model.*;
-import lombok.extern.log4j.Log4j;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.stereotype.Component;
 
@@ -24,7 +24,7 @@ import java.util.*;
  * User: bonomat
  * Date: 12/14/12
  */
-@Log4j
+@Slf4j
 @Component
 public class ViePEPOpenstackClientServiceImpl implements ViePEPOpenstackClientService {
 

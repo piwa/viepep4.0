@@ -42,7 +42,7 @@ public class PlacementHelperImpl implements PlacementHelper {
 
     @Override
     public List<WorkflowElement> getNextWorkflowInstances(boolean cleanup) {
-        synchronized (ProcessInstancePlacementProblemServiceImpl.SYNC_OBJECT) {
+        synchronized (this) {
             List<WorkflowElement> workflows = nextWorkflows;
 //        if (nextWorkflows.isEmpty() || cleanup) {
             workflows = new ArrayList<>();
@@ -65,7 +65,7 @@ public class PlacementHelperImpl implements PlacementHelper {
 
     @Override
     public List<Element> getNextSteps(String workflowInstanceId) {
-        synchronized (ProcessInstancePlacementProblemServiceImpl.SYNC_OBJECT) {
+        synchronized (this) {
 //        if (nextWorkflows.isEmpty()) {
             getNextWorkflowInstances(false);
 //        }
@@ -82,7 +82,7 @@ public class PlacementHelperImpl implements PlacementHelper {
 
     @Override
     public List<Element> getRunningProcessSteps(String workflowInstanceId) {
-        synchronized (ProcessInstancePlacementProblemServiceImpl.SYNC_OBJECT) {
+        synchronized (this) {
             List<WorkflowElement> workflowInstances = getNextWorkflowInstances(false);
             for (Element workflowInstance : workflowInstances) {
                 if (workflowInstance.getName().equals(workflowInstanceId)) {
@@ -97,7 +97,7 @@ public class PlacementHelperImpl implements PlacementHelper {
 
     @Override
     public long getRemainingSetupTime(String vmId, Date now) {
-        synchronized (ProcessInstancePlacementProblemServiceImpl.SYNC_OBJECT) {
+        synchronized (this) {
             for (VirtualMachine vm : virtualMachines) {
                 if (vm.getName().equals(vmId)) {
                     Date startedAt = vm.getStartedAt();
@@ -128,7 +128,7 @@ public class PlacementHelperImpl implements PlacementHelper {
 
     @Override
     public List<Element> getRunningSteps(boolean update) {
-        synchronized (ProcessInstancePlacementProblemServiceImpl.SYNC_OBJECT) {
+        synchronized (this) {
 //        if (allWorkflowInstances.isEmpty() || update) {
             allWorkflowInstances = workflowDaoService.getAllWorkflowElementsList();
 //        }
@@ -143,7 +143,7 @@ public class PlacementHelperImpl implements PlacementHelper {
 
     @Override
     public void clear() {
-        synchronized (ProcessInstancePlacementProblemServiceImpl.SYNC_OBJECT) {
+        synchronized (this) {
             virtualMachines = new ArrayList<>();
             nextWorkflows = new ArrayList<>();
             allWorkflowInstances = new ArrayList<>();
@@ -151,7 +151,7 @@ public class PlacementHelperImpl implements PlacementHelper {
     }
 
     private List<Element> getRunningProcessSteps(List<Element> elements) {
-        synchronized (ProcessInstancePlacementProblemServiceImpl.SYNC_OBJECT) {
+        synchronized (this) {
             List<Element> steps = new ArrayList<>();
             for (Element element : elements) {
                 if (element instanceof ProcessStep) {
@@ -175,7 +175,7 @@ public class PlacementHelperImpl implements PlacementHelper {
 
     @Override
     public List<VirtualMachine> getVMs(boolean update) {
-        synchronized (ProcessInstancePlacementProblemServiceImpl.SYNC_OBJECT) {
+        synchronized (this) {
 //        if (virtualMachines.isEmpty() || update) {
             virtualMachines = virtualMachineDaoService.getAllVms();
 //        }
@@ -185,7 +185,7 @@ public class PlacementHelperImpl implements PlacementHelper {
 
     @Override
     public WorkflowElement getWorkflowById(String workflowInstanceId) {
-        synchronized (ProcessInstancePlacementProblemServiceImpl.SYNC_OBJECT) {
+        synchronized (this) {
 //        if (nextWorkflows.isEmpty()) {
             getNextWorkflowInstances(false);
 //        }
@@ -200,7 +200,7 @@ public class PlacementHelperImpl implements PlacementHelper {
 
     @Override
     public void terminateVM(VirtualMachine virtualMachine) {
-        synchronized (ProcessInstancePlacementProblemServiceImpl.SYNC_OBJECT) {
+        synchronized (this) {
             if (!simulate) {
                 viePEPClientService.terminateInstanceByIP(virtualMachine.getIpAddress());
             }
@@ -213,7 +213,7 @@ public class PlacementHelperImpl implements PlacementHelper {
     }
 
     private List<Element> getNextSteps(Element workflow) {           // TODO split into several methods
-        synchronized (ProcessInstancePlacementProblemServiceImpl.SYNC_OBJECT) {
+        synchronized (this) {
             List<Element> nextSteps = new ArrayList<>();
             if (workflow instanceof ProcessStep) {
                 if (!((ProcessStep) workflow).hasBeenExecuted() && ((ProcessStep) workflow).getStartDate() == null) {
@@ -298,7 +298,7 @@ public class PlacementHelperImpl implements PlacementHelper {
     }
 
     private void resetChilder(List<Element> elementList) {
-        synchronized (ProcessInstancePlacementProblemServiceImpl.SYNC_OBJECT) {
+        synchronized (this) {
             if (elementList != null) {
                 for (Element element : elementList) {
                     if (element instanceof ProcessStep) {
