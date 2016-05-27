@@ -37,7 +37,7 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
     private static final double OMEGA_F_C_VALUE = 0.001;
 
     private Date tau_t;
-    private static final long TIMESLOT_DURATION = 30 * 1000 * 5; //timeslot duration is minimum 1 minute
+    private static final long TIMESLOT_DURATION = 30 * 1000 * 3; //timeslot duration is minimum 1 minute
     public static final long LEASING_DURATION = 60 * 1000 * 5; //timeslot duration is minimum 5 minutes
 
     private int V = 0;
@@ -80,6 +80,7 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
 
         //cleanups
         synchronized (SYNC_OBJECT) {
+            placementHelper.setFinishedWorkflows();
             placementHelper.clear();
             updateVMap(placementHelper.getVMs(false));
             updateUsageMap();

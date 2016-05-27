@@ -29,4 +29,6 @@ public interface PlacementHelper {
     WorkflowElement getWorkflowById(String workflowInstanceId);
 
     void terminateVM(VirtualMachine virtualMachine);
+
+    void setFinishedWorkflows();
 }

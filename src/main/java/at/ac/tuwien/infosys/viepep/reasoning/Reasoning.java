@@ -54,6 +54,8 @@ public class Reasoning {//implements Runnable {
         long tau_t_0_time = tau_t.getTime();
         Date tau_t_0 = tau_t;
         int count = 0;
+        int emptyCounter = 0;
+
 
         while (run) {
             synchronized (this) {
@@ -66,8 +68,14 @@ public class Reasoning {//implements Runnable {
                     tau_t_0 = new Date();
                     tau_t_0_time = tau_t_0.getTime();
                     boolean empty = placementHelper.getNextWorkflowInstances(true).isEmpty();
+                    if(empty) {
+                        emptyCounter++;
+                    }
+                    else {
+                        emptyCounter = 0;
+                    }
 //                    if (count >= 30 && empty) {
-                    if (count >= 150 && empty) {
+                    if ((count >= 100 && empty) || emptyCounter > 3) {
                         run = false;
                     }
                     count++;

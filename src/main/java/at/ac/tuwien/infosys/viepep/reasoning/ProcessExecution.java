@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Created by philippwaibel on 18/05/16.
@@ -61,13 +62,26 @@ public class ProcessExecution {
         log.info("Task-Done: " + processStep);
 
         if (processStep.isLastElement()) {
-            log.info("Workflow done. Workflow Name: " + processStep.getWorkflowName());
-            WorkflowElement workflowById = placementHelper.getWorkflowById(processStep.getWorkflowName());
-            List<Element> runningSteps = placementHelper.getRunningProcessSteps(processStep.getWorkflowName());
-            List<Element> nextSteps = placementHelper.getNextSteps(processStep.getWorkflowName());
-            if((nextSteps == null || nextSteps.isEmpty()) && (runningSteps == null || runningSteps.isEmpty())) {
-                workflowById.setFinishedAt(finishedAt);                             // TODO nullpointer if there are more than one end element
-                workflowDaoService.update(workflowById);
+
+            int amount = 0;
+            while(amount < 10) {
+                List<Element> runningSteps = placementHelper.getRunningProcessSteps(processStep.getWorkflowName());
+                List<Element> nextSteps = placementHelper.getNextSteps(processStep.getWorkflowName());
+                if ((nextSteps == null || nextSteps.isEmpty()) && (runningSteps == null || runningSteps.isEmpty())) {
+                    WorkflowElement workflowById = placementHelper.getWorkflowById(processStep.getWorkflowName());
+                    workflowById.setFinishedAt(finishedAt);
+                    workflowDaoService.update(workflowById);
+                    log.info("Workflow done. Workflow Name: " + processStep.getWorkflowName());
+                    break;
+                }
+
+                Random rand = new Random();
+                try {
+                    Thread.sleep(rand.nextInt(3000));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                amount ++;
             }
 
 //            workflowById.getElements().get(0).setFinishedAt(finishedAt);        // TODO set all finishedAT of child elements of workflowByID
