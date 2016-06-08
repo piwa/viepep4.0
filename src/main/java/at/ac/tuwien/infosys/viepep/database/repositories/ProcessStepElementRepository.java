@@ -1,9 +1,7 @@
 package at.ac.tuwien.infosys.viepep.database.repositories;
 
 import at.ac.tuwien.infosys.viepep.database.entities.ProcessStep;
-import at.ac.tuwien.infosys.viepep.database.entities.ServiceType;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -16,16 +14,8 @@ import java.util.List;
 public interface ProcessStepElementRepository extends CrudRepository<ProcessStep, Long> {
 
     @Cacheable(value = "ProcessStepElementCache")
-    @Query("select distinct p.serviceType from ProcessStep p where p.serviceType is not null")
-    List<ServiceType> getProcessStepTypes();
-
-    @Cacheable(value = "ProcessStepElementCache")
     @Query("select p from ProcessStep p where p.finishedAt is null and p.startDate is null")
     List<ProcessStep> getUnfinishedSteps();
-
-    @Cacheable(value = "ProcessStepElementCache")
-    @Query("select p from ProcessStep p where p.id = ?1")
-    ProcessStep find(Long processStepId) ;
 
     @Cacheable(value = "ProcessStepElementCache")
     @Query("select p from ProcessStep p where p.scheduledAtVM.id = ?1")

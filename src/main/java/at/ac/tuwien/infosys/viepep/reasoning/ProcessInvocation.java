@@ -19,7 +19,6 @@ import java.util.concurrent.Future;
 @Component
 public class ProcessInvocation {
 
-
     @Autowired
     private VirtualMachineDaoService virtualMachineDaoService;
     @Autowired
@@ -27,44 +26,41 @@ public class ProcessInvocation {
     @Autowired
     private LeaseVMAndStartExecution leaseVMAndStartExecution;
 
-    @Async//("serviceProcessExecuter")
+    @Async("serviceProcessExecuter")
     public void startInvocation(List<ProcessStep> processSteps) {
 
-//        synchronized (ProcessInstancePlacementProblemServiceImpl.SYNCH_OBJECT) {
-        final Map<VirtualMachine, List<ProcessStep>> tmp = new HashMap<>();
+        final Map<VirtualMachine, List<ProcessStep>> vmProcessStepsMap = new HashMap<>();
         for (final ProcessStep processStep : processSteps) {
 //            ProcessStep processStep = clone(finalStep);
 
             processStep.setStartDate(new Date());
             VirtualMachine scheduledAt = processStep.getScheduledAtVM();
-            List<ProcessStep> tmpSteps = new ArrayList<>();
-            if (tmp.containsKey(scheduledAt)) {
-                tmpSteps.addAll(tmp.get(scheduledAt));
+            List<ProcessStep> processStepsOnVm = new ArrayList<>();
+            if (vmProcessStepsMap.containsKey(scheduledAt)) {
+                processStepsOnVm.addAll(vmProcessStepsMap.get(scheduledAt));
             }
-            tmpSteps.add(processStep);
-            tmp.put(scheduledAt, tmpSteps);
+            processStepsOnVm.add(processStep);
+            vmProcessStepsMap.put(scheduledAt, processStepsOnVm);
             processStepDaoService.update(processStep);
         }
         Map<Future<String>, VirtualMachine> futuresMap = new HashMap<>();
-        for (final VirtualMachine virtualMachine : tmp.keySet()) {
+        for (final VirtualMachine virtualMachine : vmProcessStepsMap.keySet()) {
 
 //            final VirtualMachine virtualMachine = (VirtualMachine) SerializationUtils.clone(finalMachine);
 
-            final List<ProcessStep> processSteps1 = tmp.get(virtualMachine);
+            final List<ProcessStep> processSteps1 = vmProcessStepsMap.get(virtualMachine);
             if (!virtualMachine.isLeased()) {
                 virtualMachine.setLeased(true);
                 virtualMachine.setStartedAt(new Date());
                 virtualMachineDaoService.update(virtualMachine);
 
-                Future<String> processAddresses = leaseVMAndStartExecution.leaseVMAndStartExecution(virtualMachine, processSteps1);
-                futuresMap.put(processAddresses, virtualMachine);
+                leaseVMAndStartExecution.leaseVMAndStartExecution(virtualMachine, processSteps1);
+///                Future<String> processAddresses = leaseVMAndStartExecution.leaseVMAndStartExecution(virtualMachine, processSteps1);
+//                futuresMap.put(processAddresses, virtualMachine);           // TODO futuresMap is never used
 
             } else {
-                leaseVMAndStartExecution.startExecutions(tmp.get(virtualMachine), virtualMachine);
+                leaseVMAndStartExecution.startExecutions(vmProcessStepsMap.get(virtualMachine), virtualMachine);
             }
         }
     }
-
-
-
 }

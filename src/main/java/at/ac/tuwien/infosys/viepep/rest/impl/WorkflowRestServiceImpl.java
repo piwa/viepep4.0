@@ -28,7 +28,7 @@ public class WorkflowRestServiceImpl implements WorkflowRestService {
 
     @RequestMapping( value="/", method = RequestMethod.GET, consumes = MediaType.APPLICATION_XML_VALUE)
     public List<WorkflowElement> getWorkflows() throws Exception {
-        return workflowDaoService.getList();
+        return workflowDaoService.getAllWorkflowElementsList();
     }
 
     @Override

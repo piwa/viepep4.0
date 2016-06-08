@@ -42,7 +42,7 @@ public abstract class Element implements Serializable {
     protected String name;
 
     @XmlTransient
-    @ManyToOne()
+    @ManyToOne
     private Element parent;
 
     @XmlElementWrapper(name = "elementsList")

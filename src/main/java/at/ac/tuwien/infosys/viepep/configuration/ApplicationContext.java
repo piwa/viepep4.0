@@ -28,16 +28,20 @@ public class ApplicationContext  {
     @Primary
     public SimpleAsyncTaskExecutor simpleAsyncTaskExecutor() {
         SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();
-        executor.setConcurrencyLimit(100);
+        executor.setConcurrencyLimit(200);
         return executor;
     }
 
     @Bean(name = "serviceProcessExecuter")
     public ThreadPoolTaskExecutor serviceProcessExecuter() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setMaxPoolSize(100);
-        executor.setCorePoolSize(50);
-        executor.setQueueCapacity(100);
+//        executor.setMaxPoolSize(200);
+//        executor.setCorePoolSize(150);
+//        executor.setQueueCapacity(150);
+        executor.setMaxPoolSize(150);
+        executor.setCorePoolSize(100);
+        executor.setQueueCapacity(50);
+        executor.initialize();
         return executor;
     }
 /*

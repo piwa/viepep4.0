@@ -1,7 +1,6 @@
 package at.ac.tuwien.infosys.viepep.database.services;
 
 import at.ac.tuwien.infosys.viepep.database.entities.ProcessStep;
-import at.ac.tuwien.infosys.viepep.database.entities.ServiceType;
 import at.ac.tuwien.infosys.viepep.database.entities.VirtualMachine;
 import at.ac.tuwien.infosys.viepep.database.repositories.ProcessStepElementRepository;
 import at.ac.tuwien.infosys.viepep.reasoning.optimisation.PlacementHelper;
@@ -29,16 +28,8 @@ public class ProcessStepDaoService {
             placementHelperImpl.getNextWorkflowInstances(true);
     }
 
-    public List<ServiceType> getProcessStepTypes() {
-        return processStepElementRepository.getProcessStepTypes();
-    }
-
     public List<ProcessStep> getUnfinishedSteps() {
         return processStepElementRepository.getUnfinishedSteps();
-    }
-
-    public ProcessStep find(ProcessStep finalStep) {
-        return processStepElementRepository.find(finalStep.getId());
     }
 
     public List<ProcessStep> findByVM(VirtualMachine virtualMachine) {

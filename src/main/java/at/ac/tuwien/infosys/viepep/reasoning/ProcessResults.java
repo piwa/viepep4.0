@@ -61,7 +61,6 @@ public class ProcessResults {//implements Runnable {
         List<String> y = new ArrayList<>();
         StringBuilder stringBuilder2 = new StringBuilder();
 //        synchronized (this) {
-        List<WorkflowElement> allWorkflowInstances = workflowDaoService.getAllWorkflowInstances();
         stringBuilder2.append("------------------------- VMs running ----------------------------\n");
         List<VirtualMachine> virtualMachines = placementHelper.getVMs(false);
         for(VirtualMachine vm : virtualMachines) {
@@ -70,6 +69,7 @@ public class ProcessResults {//implements Runnable {
             }
         }
 
+        List<WorkflowElement> allWorkflowInstances = placementHelper.getNextWorkflowInstances(false); //workflowDaoService.getAllWorkflowElementsList();
         stringBuilder2.append("------------------------ Tasks running ---------------------------\n");
         List<VirtualMachine> vMs = placementHelper.getVMs(true);
         List<ProcessStep> nextSteps = processStepDaoService.getUnfinishedSteps();//workflowDaoService.getUnfinishedSteps();

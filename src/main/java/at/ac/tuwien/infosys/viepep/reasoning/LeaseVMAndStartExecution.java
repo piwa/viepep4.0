@@ -13,13 +13,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
 
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.Future;
 
 /**
  * Created by philippwaibel on 18/05/16.
@@ -45,11 +43,9 @@ public class LeaseVMAndStartExecution {
     @Value("${virtualmachine.startup.time}")
     private long startupTime;
 
-
-    //    @Override
-//    public String call() throws Exception {
     @Async
-    public Future<String> leaseVMAndStartExecution(VirtualMachine virtualMachine, List<ProcessStep> processSteps1) {
+    public void leaseVMAndStartExecution(VirtualMachine virtualMachine, List<ProcessStep> processSteps1) {
+//    public Future<String> leaseVMAndStartExecution(VirtualMachine virtualMachine, List<ProcessStep> processSteps1) {
 
         final StopWatch stopWatch = new StopWatch();
         stopWatch.start();
@@ -77,7 +73,7 @@ public class LeaseVMAndStartExecution {
         if (address == null) {
 //                            throw new Exception("server could not be started, rollback");
             log.error("VM was not started, reset task: " + virtualMachine.getName());
-            List<ProcessStep> processStepList = processStepDaoService.findByVM(virtualMachine);
+            List<ProcessStep> processStepList = processStepDaoService.findByVM(virtualMachine);     // TODO is processStepList = processSteps1?
 //                            for (ProcessStep processStep : virtualMachine.getAssignedSteps()) {
             for(ProcessStep processStep : processStepList) {
                 processStep.setStartDate(null);
@@ -85,7 +81,8 @@ public class LeaseVMAndStartExecution {
                 processStep.setScheduledAtVM(null);
                 processStepDaoService.update(processStep);
             }
-            return null;
+            return;
+//            return null;
         } else {
 //                            Thread.sleep(30000);
             long time = stopWatch.getTotalTimeMillis();
@@ -97,7 +94,7 @@ public class LeaseVMAndStartExecution {
             virtualMachineDaoService.update(virtualMachine);
             startExecutions(processSteps1, virtualMachine);
 
-            return new AsyncResult<String>(address);
+//            return new AsyncResult<String>(address);
         }
     }
 

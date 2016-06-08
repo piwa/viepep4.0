@@ -46,7 +46,7 @@ public class ProcessExecution {
     public void startExecution(ProcessStep processStep, VirtualMachine virtualMachine) {
         log.info("Task-Start: " + processStep);
 //        processStep.setStartDate(new Date());
-        processStepDaoService.update(processStep);
+//        processStepDaoService.update(processStep);
         if (simulate) {
             try {
                 Thread.sleep(processStep.getExecutionTime());

@@ -45,7 +45,7 @@ public class PlacementHelperImpl implements PlacementHelper {
         List<WorkflowElement> workflows = nextWorkflows;
         if (nextWorkflows.isEmpty() || cleanup) {
             workflows = new ArrayList<>();
-            List<WorkflowElement> list = workflowDaoService.getList();
+            List<WorkflowElement> list = workflowDaoService.getAllWorkflowElementsList();
             workflows.addAll(list);
         }
 
