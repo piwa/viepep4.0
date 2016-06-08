@@ -41,7 +41,7 @@ public class ProcessInvocation {
             }
             processStepsOnVm.add(processStep);
             vmProcessStepsMap.put(scheduledAt, processStepsOnVm);
-            processStepDaoService.update(processStep);
+//            processStepDaoService.finishWorkflow(processStep);
         }
         Map<Future<String>, VirtualMachine> futuresMap = new HashMap<>();
         for (final VirtualMachine virtualMachine : vmProcessStepsMap.keySet()) {
@@ -52,9 +52,9 @@ public class ProcessInvocation {
             if (!virtualMachine.isLeased()) {
                 virtualMachine.setLeased(true);
                 virtualMachine.setStartedAt(new Date());
-                virtualMachineDaoService.update(virtualMachine);
+                VirtualMachine virtualMachine2 = virtualMachineDaoService.update(virtualMachine);
 
-                leaseVMAndStartExecution.leaseVMAndStartExecution(virtualMachine, processSteps1);
+                leaseVMAndStartExecution.leaseVMAndStartExecution(virtualMachine2, processSteps1);
 ///                Future<String> processAddresses = leaseVMAndStartExecution.leaseVMAndStartExecution(virtualMachine, processSteps1);
 //                futuresMap.put(processAddresses, virtualMachine);           // TODO futuresMap is never used
 

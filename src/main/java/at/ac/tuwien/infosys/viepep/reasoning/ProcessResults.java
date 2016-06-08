@@ -48,13 +48,8 @@ public class ProcessResults {//implements Runnable {
     public void processResults(Result optimize, Date tau_t) {
         this.optimize = optimize;
         this.tau_t = tau_t;
-/*
-        Thread thread = new Thread(this);
-        thread.start();
-    }
 
-    public void run() {
-*/        //start VMs
+        //start VMs
         List<VirtualMachine> vmsToStart = new ArrayList<>();
         //set steps to be scheduled
         List<ProcessStep> scheduledForExecution = new ArrayList<>();
@@ -69,10 +64,10 @@ public class ProcessResults {//implements Runnable {
             }
         }
 
-        List<WorkflowElement> allWorkflowInstances = placementHelper.getNextWorkflowInstances(false); //workflowDaoService.getAllWorkflowElementsList();
+        List<WorkflowElement> allWorkflowInstances = placementHelper.getNextWorkflowInstances(); //workflowDaoService.getAllWorkflowElementsList();
         stringBuilder2.append("------------------------ Tasks running ---------------------------\n");
         List<VirtualMachine> vMs = placementHelper.getVMs(true);
-        List<ProcessStep> nextSteps = processStepDaoService.getUnfinishedSteps();//workflowDaoService.getUnfinishedSteps();
+        List<ProcessStep> nextSteps = placementHelper.getUnfinishedSteps();//workflowDaoService.getUnfinishedSteps();
         for (Element workflow : allWorkflowInstances) {
             List<Element> runningSteps = placementHelper.getRunningProcessSteps(workflow.getName());
             for (Element runningStep : runningSteps) {
@@ -81,13 +76,13 @@ public class ProcessResults {//implements Runnable {
                 }
             }
 
-            for (Element element : nextSteps) {
-                if (!((ProcessStep) element).getWorkflowName().equals(workflow.getName())) {
+            for (ProcessStep processStep : nextSteps) {
+                if (!processStep.getWorkflowName().equals(workflow.getName())) {
                     continue;
                 }
                 //check if step has to be started
                 for (VirtualMachine virtualMachine : vMs) {
-                    String x_v_k = "x_" + element.getName() + "," + virtualMachine.getName();
+                    String x_v_k = "x_" + processStep.getName() + "," + virtualMachine.getName();
                     String y_v_k = "y_" + virtualMachine.getName();
 
                     Number x_v_k_number = optimize.get(x_v_k);
@@ -102,7 +97,7 @@ public class ProcessResults {//implements Runnable {
                                 date = virtualMachine.getToBeTerminatedAt();
                             }
                             virtualMachine.setToBeTerminatedAt(new Date(date.getTime() + (ProcessInstancePlacementProblemServiceImpl.LEASING_DURATION * y_v_k_number.intValue())));
-                            virtualMachineDaoService.updateVM(virtualMachine);
+                            virtualMachine = virtualMachineDaoService.updateVM(virtualMachine);
 
                         }
                     }
@@ -111,8 +106,6 @@ public class ProcessResults {//implements Runnable {
                         continue;
                     }
 
-
-                    ProcessStep processStep = (ProcessStep) element;
                     if (x_v_k_number.intValue() == 1 && !scheduledForExecution.contains(processStep) &&
                             processStep.getStartDate() == null) {
                         processStep.setScheduledForExecution(true, tau_t);

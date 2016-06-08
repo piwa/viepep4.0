@@ -25,7 +25,6 @@ public class ProcessStepDaoService {
     public void update(ProcessStep processStep) {
 //            log.info("Save processStep: " + processStep.toString());
             processStepElementRepository.save(processStep);
-            placementHelperImpl.getNextWorkflowInstances(true);
     }
 
     public List<ProcessStep> getUnfinishedSteps() {

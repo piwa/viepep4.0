@@ -38,7 +38,7 @@ public class ProcessStep extends Element {
     private boolean isScheduled;
     private Date scheduledStartedAt;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne//(cascade = CascadeType.ALL)
     private VirtualMachine scheduledAtVM;
 
     private String workflowName;

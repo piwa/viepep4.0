@@ -64,10 +64,10 @@ public class Reasoning {//implements Runnable {
 
                     Thread.sleep(difference);
 
-                    //update tau t for next round
+                    //finishWorkflow tau t for next round
                     tau_t_0 = new Date();
                     tau_t_0_time = tau_t_0.getTime();
-                    boolean empty = placementHelper.getNextWorkflowInstances(true).isEmpty();
+                    boolean empty = placementHelper.getNextWorkflowInstances().isEmpty();
                     if(empty) {
                         emptyCounter++;
                     }
@@ -88,7 +88,7 @@ public class Reasoning {//implements Runnable {
 
         waitUntilAllProcessDone();
 
-        List<WorkflowElement> workflows = workflowDaoService.getAllWorkflowElementsList();
+        List<WorkflowElement> workflows = placementHelper.getAllWorkflowElements();//workflowDaoService.getAllWorkflowElementsList();
         int delayed = 0;
         for (WorkflowElement workflow : workflows) {
             log.info("workflow: " + workflow.getName() + " Deadline: " + formatter.format(new Date(workflow.getDeadline())));
@@ -106,7 +106,7 @@ public class Reasoning {//implements Runnable {
                     log.info(message + " : delayed in seconds: " + delay / 1000);
                     delayed++;
                 }
-                workflowDaoService.update(workflow);
+                workflowDaoService.finishWorkflow(workflow);
             } else {
                 log.info(" LastDone: not yet finished");
             }

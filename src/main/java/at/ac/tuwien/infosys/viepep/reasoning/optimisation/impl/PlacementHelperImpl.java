@@ -11,10 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 /**
  * Created by philippwaibel on 18/05/16.
@@ -41,7 +38,8 @@ public class PlacementHelperImpl implements PlacementHelper {
     private List<VirtualMachine> virtualMachines = new ArrayList<>();
 
     @Override
-    public List<WorkflowElement> getNextWorkflowInstances(boolean cleanup) {
+    public List<WorkflowElement> getNextWorkflowInstances() {
+        /*
         List<WorkflowElement> workflows = nextWorkflows;
         if (nextWorkflows.isEmpty() || cleanup) {
             workflows = new ArrayList<>();
@@ -56,12 +54,23 @@ public class PlacementHelperImpl implements PlacementHelper {
                 newWorkflows.add(workflow);
             }
         }
-        nextWorkflows = newWorkflows;
+        nextWorkflows = newWorkflows;*/
         return nextWorkflows;
     }
 
+    @Override
+    public void addWorkflowInstance(WorkflowElement workflowElement) {
+        nextWorkflows.add(workflowElement);
+        allWorkflowInstances.add(workflowElement);
+    }
+
+    @Override
+    public void deleteWorkflowInstance(WorkflowElement workflowElement) {
+        nextWorkflows.remove(workflowElement);
+    }
+
     public void setFinishedWorkflows() {
-        List<WorkflowElement> nextWorkflows = getNextWorkflowInstances(false);
+        List<WorkflowElement> nextWorkflows = Collections.synchronizedList(getNextWorkflowInstances());
 
         for (WorkflowElement workflow : nextWorkflows) {
 
@@ -93,13 +102,36 @@ public class PlacementHelperImpl implements PlacementHelper {
                     }
                 }
                 workflow.setFinishedAt(finishedDate);
-                workflowDaoService.update(workflow);
+                workflowDaoService.finishWorkflow(workflow);
             }
 
         }
 
     }
 
+    @Override
+    public List<ProcessStep> getUnfinishedSteps() {
+
+        List<ProcessStep> processSteps = new ArrayList<>();
+        for(WorkflowElement workflowElement : allWorkflowInstances) {
+            List<Element> flattenWorkflowList = getFlattenWorkflow(new ArrayList<Element>(), workflowElement);
+            for(Element element : flattenWorkflowList) {
+                if(element instanceof ProcessStep && element.getFinishedAt() == null && ((ProcessStep) element).getStartDate() == null) {
+                    processSteps.add((ProcessStep) element);
+                }
+            }
+        }
+
+        return processSteps;
+    }
+
+    @Override
+    public List<WorkflowElement> getAllWorkflowElements() {
+        return allWorkflowInstances;
+    }
+
+
+    @Override
     public List<Element> getFlattenWorkflow(List<Element> flattenWorkflowList, Element parentElement) {
         if (parentElement.getElements() != null) {
             for (Element element : parentElement.getElements()) {
@@ -113,7 +145,7 @@ public class PlacementHelperImpl implements PlacementHelper {
     @Override
     public List<Element> getNextSteps(String workflowInstanceId) {
 //        if (nextWorkflows.isEmpty()) {
-        List<WorkflowElement> nextWorkflows = getNextWorkflowInstances(false);
+        List<WorkflowElement> nextWorkflows = getNextWorkflowInstances();
 //        }
         for (Element workflow : nextWorkflows) {
             if (workflow.getName().equals(workflowInstanceId)) {
@@ -127,7 +159,7 @@ public class PlacementHelperImpl implements PlacementHelper {
 
     @Override
     public List<Element> getRunningProcessSteps(String workflowInstanceId) {
-        List<WorkflowElement> workflowInstances = getNextWorkflowInstances(false);
+        List<WorkflowElement> workflowInstances = getNextWorkflowInstances();
         for (Element workflowInstance : workflowInstances) {
             if (workflowInstance.getName().equals(workflowInstanceId)) {
                 List<Element> workflowElement = new ArrayList<>();
@@ -169,9 +201,11 @@ public class PlacementHelperImpl implements PlacementHelper {
 
     @Override
     public List<Element> getRunningSteps(boolean update) {
-        if (allWorkflowInstances.isEmpty() || update) {
+        /*
+        if (allWorkflowInstances.isEmpty() || finishWorkflow) {
             allWorkflowInstances = workflowDaoService.getAllWorkflowElementsList();             // TODO use getNextWorkflowInstances?
         }
+        */
         List<Element> running = new ArrayList<>();
         for (WorkflowElement allWorkflowInstance : allWorkflowInstances) {
             running.addAll(getRunningProcessSteps(allWorkflowInstance.getElements()));
@@ -221,7 +255,7 @@ public class PlacementHelperImpl implements PlacementHelper {
     @Override
     public WorkflowElement getWorkflowById(String workflowInstanceId) {
 //            if (nextWorkflows.isEmpty()) {
-        List<WorkflowElement> nextWorkflows = getNextWorkflowInstances(false);
+        List<WorkflowElement> nextWorkflows = getNextWorkflowInstances();
 //            }
 
 
@@ -241,7 +275,7 @@ public class PlacementHelperImpl implements PlacementHelper {
         }
         virtualMachine.terminate();
 
-        virtualMachineDaoService.update(virtualMachine);
+        virtualMachine = virtualMachineDaoService.update(virtualMachine);
         ReportingAction report = new ReportingAction(new Date(), virtualMachine.getName(), VMAction.STOPPED);
         reportDaoService.save(report);
     }

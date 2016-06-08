@@ -46,7 +46,7 @@ public class ProcessExecution {
     public void startExecution(ProcessStep processStep, VirtualMachine virtualMachine) {
         log.info("Task-Start: " + processStep);
 //        processStep.setStartDate(new Date());
-//        processStepDaoService.update(processStep);
+//        processStepDaoService.finishWorkflow(processStep);
         if (simulate) {
             try {
                 Thread.sleep(processStep.getExecutionTime());
@@ -58,7 +58,7 @@ public class ProcessExecution {
 
         Date finishedAt = new Date();
         processStep.setFinishedAt(finishedAt);
-        processStepDaoService.update(processStep);
+//        processStepDaoService.finishWorkflow(processStep);
         log.info("Task-Done: " + processStep);
 
         if (processStep.isLastElement()) {
@@ -70,7 +70,7 @@ public class ProcessExecution {
                 if ((nextSteps == null || nextSteps.isEmpty()) && (runningSteps == null || runningSteps.isEmpty())) {
                     WorkflowElement workflowById = placementHelper.getWorkflowById(processStep.getWorkflowName());
                     workflowById.setFinishedAt(finishedAt);
-                    workflowDaoService.update(workflowById);
+                    workflowDaoService.finishWorkflow(workflowById);
                     log.info("Workflow done. Workflow Name: " + processStep.getWorkflowName());
                     break;
                 }
@@ -85,12 +85,12 @@ public class ProcessExecution {
             }
 
 //            workflowById.getElements().get(0).setFinishedAt(finishedAt);        // TODO set all finishedAT of child elements of workflowByID
-//            elementDaoService.update(workflowById.getElements().get(0));
+//            elementDaoService.finishWorkflow(workflowById.getElements().get(0));
 
 
         }
 /*        else {
-            processStepDaoService.update(processStep);
+            processStepDaoService.finishWorkflow(processStep);
         }
 */
 

@@ -79,7 +79,7 @@ public class LeaseVMAndStartExecution {
                 processStep.setStartDate(null);
                 processStep.setScheduled(false);
                 processStep.setScheduledAtVM(null);
-                processStepDaoService.update(processStep);
+//                processStepDaoService.finishWorkflow(processStep);
             }
             return;
 //            return null;
@@ -91,8 +91,8 @@ public class LeaseVMAndStartExecution {
             virtualMachine.setStarted(true);
             virtualMachine.setIpAddress(address);
 
-            virtualMachineDaoService.update(virtualMachine);
-            startExecutions(processSteps1, virtualMachine);
+            VirtualMachine virtualMachine2 = virtualMachineDaoService.update(virtualMachine);
+            startExecutions(processSteps1, virtualMachine2);
 
 //            return new AsyncResult<String>(address);
         }
