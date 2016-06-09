@@ -4,9 +4,6 @@ import at.ac.tuwien.infosys.viepep.database.entities.Element;
 import at.ac.tuwien.infosys.viepep.database.entities.ProcessStep;
 import at.ac.tuwien.infosys.viepep.database.entities.VirtualMachine;
 import at.ac.tuwien.infosys.viepep.database.entities.WorkflowElement;
-import at.ac.tuwien.infosys.viepep.database.services.ProcessStepDaoService;
-import at.ac.tuwien.infosys.viepep.database.services.VirtualMachineDaoService;
-import at.ac.tuwien.infosys.viepep.database.services.WorkflowDaoService;
 import at.ac.tuwien.infosys.viepep.reasoning.optimisation.PlacementHelper;
 import at.ac.tuwien.infosys.viepep.reasoning.optimisation.impl.ProcessInstancePlacementProblemServiceImpl;
 import lombok.Setter;
@@ -33,12 +30,6 @@ public class ProcessResults {//implements Runnable {
     @Autowired
     private PlacementHelper placementHelper;
     @Autowired
-    private WorkflowDaoService workflowDaoService;
-    @Autowired
-    private ProcessStepDaoService processStepDaoService;
-    @Autowired
-    private VirtualMachineDaoService virtualMachineDaoService;
-    @Autowired
     private ProcessInvocation processInvocation;
 
     private Result optimize;
@@ -55,10 +46,10 @@ public class ProcessResults {//implements Runnable {
         List<ProcessStep> scheduledForExecution = new ArrayList<>();
         List<String> y = new ArrayList<>();
         StringBuilder stringBuilder2 = new StringBuilder();
-//        synchronized (this) {
+
         stringBuilder2.append("------------------------- VMs running ----------------------------\n");
-        List<VirtualMachine> virtualMachines = placementHelper.getVMs(false);
-        for(VirtualMachine vm : virtualMachines) {
+        List<VirtualMachine> vMs = placementHelper.getVMs();
+        for(VirtualMachine vm : vMs) {
             if(vm.isLeased() && vm.isStarted()) {
                 stringBuilder2.append(vm.toString()).append("\n");
             }
@@ -66,7 +57,7 @@ public class ProcessResults {//implements Runnable {
 
         List<WorkflowElement> allWorkflowInstances = placementHelper.getNextWorkflowInstances(); //workflowDaoService.getAllWorkflowElementsList();
         stringBuilder2.append("------------------------ Tasks running ---------------------------\n");
-        List<VirtualMachine> vMs = placementHelper.getVMs(true);
+//        List<VirtualMachine> vMs = placementHelper.getVMs();
         List<ProcessStep> nextSteps = placementHelper.getUnfinishedSteps();//workflowDaoService.getUnfinishedSteps();
         for (Element workflow : allWorkflowInstances) {
             List<Element> runningSteps = placementHelper.getRunningProcessSteps(workflow.getName());
@@ -97,7 +88,7 @@ public class ProcessResults {//implements Runnable {
                                 date = virtualMachine.getToBeTerminatedAt();
                             }
                             virtualMachine.setToBeTerminatedAt(new Date(date.getTime() + (ProcessInstancePlacementProblemServiceImpl.LEASING_DURATION * y_v_k_number.intValue())));
-                            virtualMachine = virtualMachineDaoService.updateVM(virtualMachine);
+//                            virtualMachine = virtualMachineDaoService.updateVM(virtualMachine);
 
                         }
                     }
@@ -112,14 +103,13 @@ public class ProcessResults {//implements Runnable {
                         processStep.setScheduledAtVM(virtualMachine);
                         scheduledForExecution.add(processStep);
                         virtualMachine.setServiceType(processStep.getServiceType());
-//                        virtualMachine.addAssignedSteps(processStep);
                         if (!vmsToStart.contains(virtualMachine)) {
                             vmsToStart.add(virtualMachine);
                         }
                     }
                 }
             }
-//            }
+
         }
         stringBuilder2.append("-------------------------- y results -----------------------------\n");
         for (String s : y) {
@@ -145,7 +135,7 @@ public class ProcessResults {//implements Runnable {
     }
 
     private void cleanupVMs(Date tau_t_0) {
-        List<VirtualMachine> vMs = placementHelper.getVMs(true);
+        List<VirtualMachine> vMs = placementHelper.getVMs();
         for (VirtualMachine vM : vMs) {
             if (vM.getToBeTerminatedAt() != null && vM.getToBeTerminatedAt().before((tau_t_0))) {
                 placementHelper.terminateVM(vM);

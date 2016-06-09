@@ -27,6 +27,8 @@ public class Reasoning {//implements Runnable {
     @Autowired
     private ProcessResults processResults;
     @Autowired
+    private PlacementHelper placementHelperImpl;
+    @Autowired
     private ProcessInstancePlacementProblemService resourcePredictionService;
     @Autowired
     private PlacementHelper placementHelper;
@@ -42,12 +44,8 @@ public class Reasoning {//implements Runnable {
     @Async
     public void runReasoning(Date date) throws InterruptedException {
         tau_t = date;
-/*        Thread thread = new Thread(this);
-        thread.start();
-    }
 
-    public void run() {
-*/        resourcePredictionService.initializeParameters();
+        resourcePredictionService.initializeParameters();
         run = true;
 
         Result optimize = null;
@@ -75,7 +73,7 @@ public class Reasoning {//implements Runnable {
                         emptyCounter = 0;
                     }
 //                    if (count >= 30 && empty) {
-                    if ((count >= 100 && empty) || emptyCounter > 3) {
+                    if ((count >= 100 && empty) || emptyCounter > 2) {
                         run = false;
                     }
                     count++;
@@ -106,12 +104,18 @@ public class Reasoning {//implements Runnable {
                     log.info(message + " : delayed in seconds: " + delay / 1000);
                     delayed++;
                 }
-                workflowDaoService.finishWorkflow(workflow);
+//                workflowDaoService.finishWorkflow(workflow);
+                placementHelper.deleteWorkflowInstance(workflow);
             } else {
                 log.info(" LastDone: not yet finished");
             }
         }
         log.info(String.format("From %s workflows, %s where delayed", workflows.size(), delayed));
+
+
+        for(WorkflowElement workflowElement : placementHelperImpl.getAllWorkflowElements()) {
+            workflowDaoService.finishWorkflow(workflowElement);
+        }
 
     }
 
@@ -155,5 +159,9 @@ public class Reasoning {//implements Runnable {
         processResults.processResults(finalOptimize, finalTau_t_);
 
         return difference;
+    }
+
+    public void stop() {
+        this.run = false;
     }
 }

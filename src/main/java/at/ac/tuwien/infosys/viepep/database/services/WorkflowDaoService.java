@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -31,6 +32,7 @@ public class WorkflowDaoService {
     @Autowired
     private VirtualMachineDaoService virtualMachineDaoService;
 
+
     public void saveWorkflow(WorkflowElement workflow) {
 //        log.info("Save workflowElement: " + workflow.toString());
 //        workflowElementRepository.save(workflow);
@@ -39,8 +41,25 @@ public class WorkflowDaoService {
 
 
     public void finishWorkflow(WorkflowElement workflow) {
-//        log.info("Update workflowElement: " + workflow.toString());
-        for(Element element : placementHelperImpl.getFlattenWorkflow(new ArrayList<>(), workflow)) {
+        log.info("-- Update workflowElement: " + workflow.toString());
+
+        List<Element> flattedWorkflow = placementHelperImpl.getFlattenWorkflow(new ArrayList<>(), workflow);
+        Date finishedDate = null;
+        for(Element element : flattedWorkflow) {
+            if(element instanceof ProcessStep && element.isLastElement()) {
+                if(element.getFinishedAt() != null) {
+                    if(finishedDate == null) {
+                        finishedDate = element.getFinishedAt();
+                    }
+                    else if(element.getFinishedAt().after(finishedDate)) {
+                        finishedDate = element.getFinishedAt();
+                    }
+                }
+            }
+        }
+
+        workflow.setFinishedAt(finishedDate);
+        for(Element element : flattedWorkflow) {
             if (element.getFinishedAt() == null) {
                 element.setFinishedAt(workflow.getFinishedAt());
             }
@@ -48,16 +67,22 @@ public class WorkflowDaoService {
 
                 VirtualMachine vm = ((ProcessStep) element).getScheduledAtVM();
                 if(vm != null) {                    // if the process step is after an XOR the process steps on one side of the XOR are not used
-                    vm = virtualMachineDaoService.getVm(vm);
-                    ((ProcessStep) element).setScheduledAtVM(vm);
-                    virtualMachineDaoService.update(vm);
+                    log.info(vm.toString());
+                    if(vm.getId() != null) {
+                        vm = virtualMachineDaoService.getVm(vm);
+                        ((ProcessStep) element).setScheduledAtVM(vm);
+                        virtualMachineDaoService.update(vm);
+                    }
+                    else {
+                        vm = virtualMachineDaoService.update(vm);
+                        ((ProcessStep) element).setScheduledAtVM(vm);
+                    }
                 }
+
             }
-//            elementDaoService.update(element);
+
         }
         workflowElementRepository.save(workflow);
-
-        placementHelperImpl.deleteWorkflowInstance(workflow);
     }
 
     public List<WorkflowElement> getAllWorkflowElementsList() {

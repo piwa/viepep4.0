@@ -158,6 +158,7 @@ public class ProcessStep extends Element {
                 ", startDate=" + startDateformat +
                 ", finishedAt=" + finishedAtformat +
                 ", scheduledAtVM=" + vmName +
+                ", lastElement=" + isLastElement() +
                 '}';
     }
 

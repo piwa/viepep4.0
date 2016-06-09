@@ -1,7 +1,6 @@
 package at.ac.tuwien.infosys.viepep.configuration;
 
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -21,7 +20,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @EnableRetry
 @EnableScheduling
 @EnableAsync
-@EnableCaching
 public class ApplicationContext  {
 
     @Bean

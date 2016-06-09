@@ -3,8 +3,8 @@ package at.ac.tuwien.infosys.viepep.reasoning;
 import at.ac.tuwien.infosys.viepep.database.entities.VMType;
 import at.ac.tuwien.infosys.viepep.database.entities.VirtualMachine;
 import at.ac.tuwien.infosys.viepep.database.entities.WorkflowElement;
-import at.ac.tuwien.infosys.viepep.database.services.VirtualMachineDaoService;
 import at.ac.tuwien.infosys.viepep.database.services.WorkflowDaoService;
+import at.ac.tuwien.infosys.viepep.reasoning.optimisation.PlacementHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -23,11 +23,11 @@ import java.util.List;
 public class ReasoningActivator {
 
     @Autowired
-    private WorkflowDaoService workflowDaoService;
-    @Autowired
-    private VirtualMachineDaoService virtualMachineDaoService;
-    @Autowired
     private Reasoning reasoning;
+    @Autowired
+    private PlacementHelper placementHelperImpl;
+    @Autowired
+    private WorkflowDaoService workflowDaoService;
 
     private List<WorkflowElement> workflows;
 
@@ -40,9 +40,10 @@ public class ReasoningActivator {
 
         workflows = new ArrayList<>();
 
-        workflows = workflowDaoService.getAllWorkflowElementsList();
+//        workflows = workflowDaoService.getAllWorkflowElementsList();
 
-        virtualMachineDaoService.removeAllVms();
+        placementHelperImpl.clear();
+//        virtualMachineDaoService.removeAllVms();
         List<VirtualMachine> vms = new ArrayList<>();
         try {
             for (int v = 0; v < V; v++) {
@@ -55,7 +56,15 @@ public class ReasoningActivator {
             log.error("EXCEPTION", ex);
         }
 
-        virtualMachineDaoService.saveVms(vms);
+        for(VirtualMachine vm : vms) {
+            placementHelperImpl.addVM(vm);
+        }
+
+//        virtualMachineDaoService.saveVms(vms);
         reasoning.runReasoning(new Date());
+    }
+
+    public void stop() {
+        reasoning.stop();
     }
 }

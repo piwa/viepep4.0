@@ -47,7 +47,8 @@ public class ViePepApplication implements CommandLineRunner {
 						}
 						break;
 					case "stop":
-						running = false;
+//						running = false;
+						reasoningActivator.stop();
 //						stop();
 						break;
 				}

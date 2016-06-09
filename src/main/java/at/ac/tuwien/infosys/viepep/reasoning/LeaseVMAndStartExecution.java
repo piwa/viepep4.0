@@ -7,7 +7,6 @@ import at.ac.tuwien.infosys.viepep.database.entities.VMAction;
 import at.ac.tuwien.infosys.viepep.database.entities.VirtualMachine;
 import at.ac.tuwien.infosys.viepep.database.services.ProcessStepDaoService;
 import at.ac.tuwien.infosys.viepep.database.services.ReportDaoService;
-import at.ac.tuwien.infosys.viepep.database.services.VirtualMachineDaoService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,8 +31,6 @@ public class LeaseVMAndStartExecution {
     @Autowired
     private ViePEPClientService viePEPClientService;
     @Autowired
-    private VirtualMachineDaoService virtualMachineDaoService;
-    @Autowired
     private ProcessStepDaoService processStepDaoService;
     @Autowired
     private ProcessExecution processExecution;
@@ -45,7 +42,6 @@ public class LeaseVMAndStartExecution {
 
     @Async
     public void leaseVMAndStartExecution(VirtualMachine virtualMachine, List<ProcessStep> processSteps1) {
-//    public Future<String> leaseVMAndStartExecution(VirtualMachine virtualMachine, List<ProcessStep> processSteps1) {
 
         final StopWatch stopWatch = new StopWatch();
         stopWatch.start();
@@ -71,10 +67,8 @@ public class LeaseVMAndStartExecution {
         reportDaoService.save(report);
 
         if (address == null) {
-//                            throw new Exception("server could not be started, rollback");
             log.error("VM was not started, reset task: " + virtualMachine.getName());
             List<ProcessStep> processStepList = processStepDaoService.findByVM(virtualMachine);     // TODO is processStepList = processSteps1?
-//                            for (ProcessStep processStep : virtualMachine.getAssignedSteps()) {
             for(ProcessStep processStep : processStepList) {
                 processStep.setStartDate(null);
                 processStep.setScheduled(false);
@@ -82,19 +76,15 @@ public class LeaseVMAndStartExecution {
 //                processStepDaoService.finishWorkflow(processStep);
             }
             return;
-//            return null;
         } else {
-//                            Thread.sleep(30000);
             long time = stopWatch.getTotalTimeMillis();
             stopWatch.stop();
             virtualMachine.setStartupTime(time);
             virtualMachine.setStarted(true);
             virtualMachine.setIpAddress(address);
 
-            VirtualMachine virtualMachine2 = virtualMachineDaoService.update(virtualMachine);
-            startExecutions(processSteps1, virtualMachine2);
+            startExecutions(processSteps1, virtualMachine);
 
-//            return new AsyncResult<String>(address);
         }
     }
 

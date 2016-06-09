@@ -25,7 +25,9 @@ public interface PlacementHelper {
 
     long getRemainingSetupTime(String vmId, Date now);
 
-    List<VirtualMachine> getVMs(boolean update);
+    List<VirtualMachine> getVMs();
+
+    void addVM(VirtualMachine vm);
 
     WorkflowElement getWorkflowById(String workflowInstanceId);
 

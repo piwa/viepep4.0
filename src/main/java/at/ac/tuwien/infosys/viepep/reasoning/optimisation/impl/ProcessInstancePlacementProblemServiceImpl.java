@@ -1,7 +1,6 @@
 package at.ac.tuwien.infosys.viepep.reasoning.optimisation.impl;
 
 import at.ac.tuwien.infosys.viepep.database.entities.*;
-import at.ac.tuwien.infosys.viepep.database.services.VirtualMachineDaoService;
 import at.ac.tuwien.infosys.viepep.reasoning.optimisation.PlacementHelper;
 import at.ac.tuwien.infosys.viepep.reasoning.optimisation.ProcessInstancePlacementProblemService;
 import ilog.concert.IloException;
@@ -24,8 +23,6 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
 
     @Autowired
     private PlacementHelper placementHelper;
-    @Autowired
-    private VirtualMachineDaoService virtualMachineDaoService;
 
     private static final long SERVICE_DEPLOY_TIME = 40000L;
     public static final Object SYNC_OBJECT = "Sync_Lock";
@@ -37,7 +34,7 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
     private static final double OMEGA_F_C_VALUE = 0.001;
 
     private Date tau_t;
-    private static final long TIMESLOT_DURATION = 30 * 1000 * 3; //timeslot duration is minimum 1 minute
+    private static final long TIMESLOT_DURATION = 30 * 1000 * 1; //timeslot duration is minimum 1 minute
     public static final long LEASING_DURATION = 60 * 1000 * 5; //timeslot duration is minimum 5 minutes
 
     private int V = 0;
@@ -63,7 +60,7 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
         /**
          * initialize vm map
          */
-        List<VirtualMachine> vMs = placementHelper.getVMs(false);
+        List<VirtualMachine> vMs = placementHelper.getVMs();
         updateVMap(vMs);
 
 
@@ -82,7 +79,7 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
         synchronized (SYNC_OBJECT) {
             placementHelper.setFinishedWorkflows();
 //            placementHelper.clear();
-            updateVMap(placementHelper.getVMs(false));
+            updateVMap(placementHelper.getVMs());
             updateUsageMap();
             allRunningSteps = null;
             nextSteps = new HashMap<>();
@@ -97,7 +94,7 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
             }
         }
 
-            log.info("---- after initial");
+//            log.info("---- after initial");
 
             this.tau_t = tau_t;
 //        M = 100000 / 1000;
@@ -151,7 +148,7 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
                 });
             }
 
-            log.info("---- start solver");
+//            log.info("---- start solver");
             Result solve = solver.solve(problem);
 
             log.info("\n-------------------------\nSolved:   \n" + solve + "\n" +
@@ -162,7 +159,7 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
             StringBuilder vars = new StringBuilder();
 
 
-            log.info(printCollections());
+//            log.info(printCollections());
 
             vars.append("\n-------------------------\nVariables " + "-------------------------\n");
             if (solve != null) {
@@ -875,7 +872,7 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
     private List<Element> getNextSteps(Element workflow) {
         List<Element> list = new ArrayList<>();
         if (!nextSteps.containsKey(workflow.getName())) {
-            log.info("getNextSteps finishWorkflow");
+//            log.info("getNextSteps finishWorkflow");
             List<Element> nextSteps1 = Collections.synchronizedList(new ArrayList<Element>(placementHelper.getNextSteps(workflow.getName())));
             nextSteps.put(workflow.getName(), nextSteps1);
         }
@@ -889,7 +886,7 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
      */
     public List<Element> getRunningSteps(String workflowInstanceID) {
         if (!runningSteps.containsKey(workflowInstanceID)) {
-            log.info("getRunningSteps finishWorkflow");
+//            log.info("getRunningSteps finishWorkflow");
             List<Element> runningProcessSteps = Collections.synchronizedList(new ArrayList<Element>(placementHelper.getRunningProcessSteps(workflowInstanceID)));
             runningSteps.put(workflowInstanceID, runningProcessSteps);
         }
@@ -956,7 +953,7 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
         ProcessStep processStep = (ProcessStep) step;
         long remainingExecutionTime = processStep.getRemainingExecutionTime(tau_t);
         if (processStep.isScheduled()) {
-            log.info("getRemainingExecutionTimeAndDeployTimes finishWorkflow");
+//            log.info("getRemainingExecutionTimeAndDeployTimes finishWorkflow");
             remainingExecutionTime += placementHelper.getRemainingSetupTime(processStep.getScheduledAtVM().getName(), tau_t);
         } else {
             remainingExecutionTime += SERVICE_DEPLOY_TIME + VM_STARTUP_TIME;

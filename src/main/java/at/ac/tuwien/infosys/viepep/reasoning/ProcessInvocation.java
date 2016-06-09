@@ -3,7 +3,6 @@ package at.ac.tuwien.infosys.viepep.reasoning;
 import at.ac.tuwien.infosys.viepep.database.entities.ProcessStep;
 import at.ac.tuwien.infosys.viepep.database.entities.VirtualMachine;
 import at.ac.tuwien.infosys.viepep.database.services.ProcessStepDaoService;
-import at.ac.tuwien.infosys.viepep.database.services.VirtualMachineDaoService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -20,8 +19,6 @@ import java.util.concurrent.Future;
 public class ProcessInvocation {
 
     @Autowired
-    private VirtualMachineDaoService virtualMachineDaoService;
-    @Autowired
     private ProcessStepDaoService processStepDaoService;
     @Autowired
     private LeaseVMAndStartExecution leaseVMAndStartExecution;
@@ -31,7 +28,6 @@ public class ProcessInvocation {
 
         final Map<VirtualMachine, List<ProcessStep>> vmProcessStepsMap = new HashMap<>();
         for (final ProcessStep processStep : processSteps) {
-//            ProcessStep processStep = clone(finalStep);
 
             processStep.setStartDate(new Date());
             VirtualMachine scheduledAt = processStep.getScheduledAtVM();
@@ -41,20 +37,16 @@ public class ProcessInvocation {
             }
             processStepsOnVm.add(processStep);
             vmProcessStepsMap.put(scheduledAt, processStepsOnVm);
-//            processStepDaoService.finishWorkflow(processStep);
         }
         Map<Future<String>, VirtualMachine> futuresMap = new HashMap<>();
         for (final VirtualMachine virtualMachine : vmProcessStepsMap.keySet()) {
-
-//            final VirtualMachine virtualMachine = (VirtualMachine) SerializationUtils.clone(finalMachine);
 
             final List<ProcessStep> processSteps1 = vmProcessStepsMap.get(virtualMachine);
             if (!virtualMachine.isLeased()) {
                 virtualMachine.setLeased(true);
                 virtualMachine.setStartedAt(new Date());
-                VirtualMachine virtualMachine2 = virtualMachineDaoService.update(virtualMachine);
 
-                leaseVMAndStartExecution.leaseVMAndStartExecution(virtualMachine2, processSteps1);
+                leaseVMAndStartExecution.leaseVMAndStartExecution(virtualMachine, processSteps1);
 ///                Future<String> processAddresses = leaseVMAndStartExecution.leaseVMAndStartExecution(virtualMachine, processSteps1);
 //                futuresMap.put(processAddresses, virtualMachine);           // TODO futuresMap is never used
 

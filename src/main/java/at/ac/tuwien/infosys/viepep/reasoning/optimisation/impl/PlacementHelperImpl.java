@@ -4,7 +4,6 @@ import at.ac.tuwien.infosys.viepep.connectors.ViePEPClientService;
 import at.ac.tuwien.infosys.viepep.database.entities.*;
 import at.ac.tuwien.infosys.viepep.database.services.ElementDaoService;
 import at.ac.tuwien.infosys.viepep.database.services.ReportDaoService;
-import at.ac.tuwien.infosys.viepep.database.services.VirtualMachineDaoService;
 import at.ac.tuwien.infosys.viepep.database.services.WorkflowDaoService;
 import at.ac.tuwien.infosys.viepep.reasoning.optimisation.PlacementHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,8 +22,6 @@ public class PlacementHelperImpl implements PlacementHelper {
     private WorkflowDaoService workflowDaoService;
     @Autowired
     private ElementDaoService elementDaoService;
-    @Autowired
-    private VirtualMachineDaoService virtualMachineDaoService;
     @Autowired
     private ViePEPClientService viePEPClientService;
     @Autowired
@@ -55,7 +52,7 @@ public class PlacementHelperImpl implements PlacementHelper {
             }
         }
         nextWorkflows = newWorkflows;*/
-        return nextWorkflows;
+        return Collections.synchronizedList(nextWorkflows);
     }
 
     @Override
@@ -102,7 +99,8 @@ public class PlacementHelperImpl implements PlacementHelper {
                     }
                 }
                 workflow.setFinishedAt(finishedDate);
-                workflowDaoService.finishWorkflow(workflow);
+//                workflowDaoService.finishWorkflow(workflow);
+                deleteWorkflowInstance(workflow);
             }
 
         }
@@ -245,11 +243,16 @@ public class PlacementHelperImpl implements PlacementHelper {
     }
 
     @Override
-    public List<VirtualMachine> getVMs(boolean update) {
-        if (virtualMachines.isEmpty() || update) {
+    public List<VirtualMachine> getVMs() {
+        /*if (virtualMachines.isEmpty() || update) {
             virtualMachines = virtualMachineDaoService.getAllVms();
-        }
+        }*/
         return virtualMachines;
+    }
+
+    @Override
+    public void addVM(VirtualMachine vm) {
+        virtualMachines.add(vm);
     }
 
     @Override
@@ -275,7 +278,7 @@ public class PlacementHelperImpl implements PlacementHelper {
         }
         virtualMachine.terminate();
 
-        virtualMachine = virtualMachineDaoService.update(virtualMachine);
+//        virtualMachine = virtualMachineDaoService.update(virtualMachine);
         ReportingAction report = new ReportingAction(new Date(), virtualMachine.getName(), VMAction.STOPPED);
         reportDaoService.save(report);
     }
