@@ -33,6 +33,7 @@ public class ViePepApplication implements CommandLineRunner {
 			started = true;
 			reasoningActivator.initialize();
 
+/*
 			while (running) {
 				System.out.println("-----------Enter 'start' to begin or 'stop' to end -------------");
 				input = scanner.nextLine();
@@ -53,7 +54,7 @@ public class ViePepApplication implements CommandLineRunner {
 						break;
 				}
 			}
-
+*/
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (Exception e) {

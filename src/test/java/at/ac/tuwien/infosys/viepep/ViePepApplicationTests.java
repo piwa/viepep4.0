@@ -1,5 +1,6 @@
 package at.ac.tuwien.infosys.viepep;
 
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -9,9 +10,9 @@ import org.springframework.test.context.web.WebAppConfiguration;
 @SpringApplicationConfiguration(classes = ViePepApplication.class)
 @WebAppConfiguration
 public class ViePepApplicationTests {
-/*
+
 	@Test
 	public void contextLoads() {
 	}
-*/
+
 }
