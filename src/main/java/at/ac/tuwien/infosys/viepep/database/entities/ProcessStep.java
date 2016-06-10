@@ -29,7 +29,7 @@ import java.util.List;
 @Setter
 public class ProcessStep extends Element {
 
-    @XmlElement(name = "serviceType")
+    @XmlElement(name = "type")
     @Enumerated(EnumType.STRING)
     private ServiceType serviceType;
 
