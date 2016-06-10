@@ -2,6 +2,7 @@ package at.ac.tuwien.infosys.viepep.reasoning;
 
 import at.ac.tuwien.infosys.viepep.database.entities.ProcessStep;
 import at.ac.tuwien.infosys.viepep.database.entities.WorkflowElement;
+import at.ac.tuwien.infosys.viepep.database.inmemory.services.CacheWorkflowService;
 import at.ac.tuwien.infosys.viepep.database.services.WorkflowDaoService;
 import at.ac.tuwien.infosys.viepep.reasoning.optimisation.PlacementHelper;
 import at.ac.tuwien.infosys.viepep.reasoning.optimisation.ProcessInstancePlacementProblemService;
@@ -32,6 +33,8 @@ public class Reasoning {//implements Runnable {
     private ProcessInstancePlacementProblemService resourcePredictionService;
     @Autowired
     private PlacementHelper placementHelper;
+    @Autowired
+    private CacheWorkflowService cacheWorkflowService;
     @Autowired
     private WorkflowDaoService workflowDaoService;
 
@@ -65,7 +68,7 @@ public class Reasoning {//implements Runnable {
                     //finishWorkflow tau t for next round
                     tau_t_0 = new Date();
                     tau_t_0_time = tau_t_0.getTime();
-                    boolean empty = placementHelper.getNextWorkflowInstances().isEmpty();
+                    boolean empty = cacheWorkflowService.getRunningWorkflowInstances().isEmpty();
                     if(empty) {
                         emptyCounter++;
                     }
@@ -86,7 +89,7 @@ public class Reasoning {//implements Runnable {
 
         waitUntilAllProcessDone();
 
-        List<WorkflowElement> workflows = placementHelper.getAllWorkflowElements();//workflowDaoService.getAllWorkflowElementsList();
+        List<WorkflowElement> workflows = cacheWorkflowService.getAllWorkflowElements();
         int delayed = 0;
         for (WorkflowElement workflow : workflows) {
             log.info("workflow: " + workflow.getName() + " Deadline: " + formatter.format(new Date(workflow.getDeadline())));
@@ -105,7 +108,7 @@ public class Reasoning {//implements Runnable {
                     delayed++;
                 }
 //                workflowDaoService.finishWorkflow(workflow);
-                placementHelper.deleteWorkflowInstance(workflow);
+                cacheWorkflowService.deleteRunningWorkflowInstance(workflow);
             } else {
                 log.info(" LastDone: not yet finished");
             }
@@ -113,7 +116,7 @@ public class Reasoning {//implements Runnable {
         log.info(String.format("From %s workflows, %s where delayed", workflows.size(), delayed));
 
 
-        for(WorkflowElement workflowElement : placementHelperImpl.getAllWorkflowElements()) {
+        for(WorkflowElement workflowElement : cacheWorkflowService.getAllWorkflowElements()) {
             workflowDaoService.finishWorkflow(workflowElement);
         }
 

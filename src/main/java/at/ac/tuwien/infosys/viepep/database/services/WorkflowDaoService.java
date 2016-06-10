@@ -6,14 +6,12 @@ import at.ac.tuwien.infosys.viepep.database.entities.VirtualMachine;
 import at.ac.tuwien.infosys.viepep.database.entities.WorkflowElement;
 import at.ac.tuwien.infosys.viepep.database.repositories.WorkflowElementRepository;
 import at.ac.tuwien.infosys.viepep.reasoning.optimisation.PlacementHelper;
-import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -32,13 +30,13 @@ public class WorkflowDaoService {
     @Autowired
     private VirtualMachineDaoService virtualMachineDaoService;
 
-
+/*
     public void saveWorkflow(WorkflowElement workflow) {
 //        log.info("Save workflowElement: " + workflow.toString());
 //        workflowElementRepository.save(workflow);
         placementHelperImpl.addWorkflowInstance(workflow);
     }
-
+*/
 
     public void finishWorkflow(WorkflowElement workflow) {
         log.info("-- Update workflowElement: " + workflow.toString());
@@ -85,6 +83,7 @@ public class WorkflowDaoService {
         workflowElementRepository.save(workflow);
     }
 
+    /*
     public List<WorkflowElement> getAllWorkflowElementsList() {
         Iterator<WorkflowElement> iterator = workflowElementRepository.findAll().iterator();
 
@@ -93,5 +92,5 @@ public class WorkflowDaoService {
 
         return resultList;
     }
-
+*/
 }

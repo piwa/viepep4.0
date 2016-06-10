@@ -3,8 +3,8 @@ package at.ac.tuwien.infosys.viepep.reasoning;
 import at.ac.tuwien.infosys.viepep.database.entities.VMType;
 import at.ac.tuwien.infosys.viepep.database.entities.VirtualMachine;
 import at.ac.tuwien.infosys.viepep.database.entities.WorkflowElement;
-import at.ac.tuwien.infosys.viepep.database.services.WorkflowDaoService;
-import at.ac.tuwien.infosys.viepep.reasoning.optimisation.PlacementHelper;
+import at.ac.tuwien.infosys.viepep.database.inmemory.database.InMemoryCacheImpl;
+import at.ac.tuwien.infosys.viepep.database.inmemory.services.CacheVirtualMachineService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -25,9 +25,9 @@ public class ReasoningActivator {
     @Autowired
     private Reasoning reasoning;
     @Autowired
-    private PlacementHelper placementHelperImpl;
+    private CacheVirtualMachineService cacheVirtualMachineService;
     @Autowired
-    private WorkflowDaoService workflowDaoService;
+    private InMemoryCacheImpl inMemoryCache;
 
     private List<WorkflowElement> workflows;
 
@@ -40,10 +40,8 @@ public class ReasoningActivator {
 
         workflows = new ArrayList<>();
 
-//        workflows = workflowDaoService.getAllWorkflowElementsList();
+        inMemoryCache.clear();
 
-        placementHelperImpl.clear();
-//        virtualMachineDaoService.removeAllVms();
         List<VirtualMachine> vms = new ArrayList<>();
         try {
             for (int v = 0; v < V; v++) {
@@ -57,10 +55,9 @@ public class ReasoningActivator {
         }
 
         for(VirtualMachine vm : vms) {
-            placementHelperImpl.addVM(vm);
+            cacheVirtualMachineService.addVM(vm);
         }
 
-//        virtualMachineDaoService.saveVms(vms);
         reasoning.runReasoning(new Date());
     }
 

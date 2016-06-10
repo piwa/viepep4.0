@@ -50,7 +50,7 @@ public class ViePEPAwsClientServiceImpl implements ViePEPAwsClientService {
             if (propertyFile != null) {
                 prop.load(new FileInputStream(propertyFile));
             } else {
-                propertyFile = "cloud-config/viepep2.0.properties";
+                propertyFile = "cloud-config/viepep4.0.properties";
                 prop.load(getClass().getClassLoader().getResourceAsStream(propertyFile));
             }
 

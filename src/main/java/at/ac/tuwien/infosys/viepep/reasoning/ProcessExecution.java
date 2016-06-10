@@ -4,6 +4,7 @@ import at.ac.tuwien.infosys.viepep.database.entities.Element;
 import at.ac.tuwien.infosys.viepep.database.entities.ProcessStep;
 import at.ac.tuwien.infosys.viepep.database.entities.VirtualMachine;
 import at.ac.tuwien.infosys.viepep.database.entities.WorkflowElement;
+import at.ac.tuwien.infosys.viepep.database.inmemory.services.CacheWorkflowService;
 import at.ac.tuwien.infosys.viepep.reasoning.dto.InvocationResultDTO;
 import at.ac.tuwien.infosys.viepep.reasoning.optimisation.PlacementHelper;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,8 @@ public class ProcessExecution {
     private ServiceInvoker serviceInvoker;
     @Autowired
     private PlacementHelper placementHelper;
+    @Autowired
+    private CacheWorkflowService cacheWorkflowService;
 
     @Value("${simulate}")
     private boolean simulate;
@@ -55,10 +58,9 @@ public class ProcessExecution {
             List<Element> runningSteps = placementHelper.getRunningProcessSteps(processStep.getWorkflowName());
             List<Element> nextSteps = placementHelper.getNextSteps(processStep.getWorkflowName());
             if ((nextSteps == null || nextSteps.isEmpty()) && (runningSteps == null || runningSteps.isEmpty())) {
-                WorkflowElement workflowById = placementHelper.getWorkflowById(processStep.getWorkflowName());
+                WorkflowElement workflowById = cacheWorkflowService.getWorkflowById(processStep.getWorkflowName());
                 workflowById.setFinishedAt(finishedAt);
-//                    workflowDaoService.finishWorkflow(workflowById);
-                placementHelper.deleteWorkflowInstance(workflowById);
+                cacheWorkflowService.deleteRunningWorkflowInstance(workflowById);
                 log.info("Workflow done. Workflow: " + workflowById);
 
             }
