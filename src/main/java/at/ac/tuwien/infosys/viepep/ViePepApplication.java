@@ -20,7 +20,7 @@ public class ViePepApplication implements CommandLineRunner {
 	}
 
 	public void run(String... args) {
-		System.out.println("Starting ViePEP 3.0 Embedded Jersey HTTPServer...\n");
+		System.out.println("Starting ViePEP 4.0...\n");
 
 		try {
 //			start();
@@ -33,9 +33,9 @@ public class ViePepApplication implements CommandLineRunner {
 			started = true;
 			reasoningActivator.initialize();
 
-/*
+
 			while (running) {
-				System.out.println("-----------Enter 'start' to begin or 'stop' to end -------------");
+/*				System.out.println("-----------Enter 'start' to begin or 'stop' to end -------------");
 				input = scanner.nextLine();
 				while (!input.equalsIgnoreCase("start") && !input.equalsIgnoreCase("stop")) {
 					input = scanner.nextLine();
@@ -53,8 +53,11 @@ public class ViePepApplication implements CommandLineRunner {
 //						stop();
 						break;
 				}
-			}
 */
+				wait();
+
+			}
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (Exception e) {
