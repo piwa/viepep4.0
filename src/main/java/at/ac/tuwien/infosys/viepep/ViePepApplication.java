@@ -54,7 +54,7 @@ public class ViePepApplication implements CommandLineRunner {
 						break;
 				}
 */
-				wait();
+				Thread.sleep(1000 * 60 * 10);
 
 			}
 
