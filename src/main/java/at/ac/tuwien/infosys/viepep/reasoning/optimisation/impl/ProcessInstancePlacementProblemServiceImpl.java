@@ -40,7 +40,7 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
     private static final double OMEGA_F_C_VALUE = 0.001;
 
     private Date tau_t;
-    private static final long TIMESLOT_DURATION = 30 * 1000 * 1; //timeslot duration is minimum 1 minute
+    private static final long TIMESLOT_DURATION = 30 * 1000 * 2; //timeslot duration is minimum 1 minute
     public static final long LEASING_DURATION = 60 * 1000 * 5; //timeslot duration is minimum 5 minutes
 
     private int V = 0;
@@ -111,7 +111,7 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
             factory = new SolverFactoryLpSolve();//use lp solve
         }
 //        factory.setParameter(Solver.POSTSOLVE, 2);
-        factory.setParameter(Solver.VERBOSE, 1);
+        factory.setParameter(Solver.VERBOSE, 0);
         factory.setParameter(Solver.TIMEOUT, 600); // set timeout to 600 seconds
 
         problem = new Problem();
@@ -154,38 +154,37 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
 
         Result solve = solver.solve(problem);
 
-        log.info("\n-------------------------\nSolved:   \n" + solve + "\n" +
-                "-------------------------\n");
-
+        log.info("------------------------- Solved  -------------------------");
+        log.info(solve.toString());
 
         int i = 0;
         StringBuilder vars = new StringBuilder();
 
-        vars.append("\n-------------------------\nVariables " + "-------------------------\n");
         if (solve != null) {
+            log.info("------------------------- Variables -------------------------");
             for (Object variable : problem.getVariables()) {
                 vars.append(i).append(": ").append(variable).append("=").append(solve.get(variable)).append(", ");
                 i++;
             }
             log.info(vars.toString());
-            log.info("\n-------------------------\n--------- " + "-------------------------\n");
+            log.info("-----------------------------------------------------------");
         }
 
 
         if (solve == null) {
-            System.out.println("\n-----------------------------\n");
+            log.error("-----------------------------------------------------------");
             Collection<Object> variables = problem.getVariables();
             i = 0;
             for (Object variable : variables) {
-                System.out.println(i + " " + variable);
+                log.error(i + " " + variable);
                 i++;
             }
 
-            System.out.println("\n-----------------------------\n");
-            System.out.println(problem.getConstraints());
-            System.out.println("\n-----------------------------\n");
-            System.out.println(problem.getObjective());
-            System.out.println("\n-----------------------------\n");
+            log.error("-----------------------------------------------------------");
+            log.error(problem.getConstraints().toString());
+            log.error("-----------------------------------------------------------");
+            log.error(problem.getObjective().toString());
+            log.error("-----------------------------------------------------------");
 
         }
         return solve;

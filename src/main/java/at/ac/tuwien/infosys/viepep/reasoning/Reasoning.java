@@ -23,12 +23,10 @@ import java.util.List;
 @Component
 @Scope("prototype")
 @Slf4j
-public class Reasoning {//implements Runnable {
+public class Reasoning {
 
     @Autowired
     private ProcessResults processResults;
-    @Autowired
-    private PlacementHelper placementHelperImpl;
     @Autowired
     private ProcessInstancePlacementProblemService resourcePredictionService;
     @Autowired
@@ -76,7 +74,7 @@ public class Reasoning {//implements Runnable {
                         emptyCounter = 0;
                     }
 //                    if (count >= 30 && empty) {
-                    if ((count >= 100 && empty) || emptyCounter > 2) {
+                    if ((count >= 150 && empty) || emptyCounter > 4) {
                         run = false;
                     }
                     count++;

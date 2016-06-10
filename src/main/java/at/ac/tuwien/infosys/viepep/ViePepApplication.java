@@ -1,7 +1,9 @@
 package at.ac.tuwien.infosys.viepep;
 
+import at.ac.tuwien.infosys.viepep.connectors.impl.ViePEPOpenstackClientServiceImpl;
 import at.ac.tuwien.infosys.viepep.reasoning.ReasoningActivator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -14,6 +16,11 @@ public class ViePepApplication implements CommandLineRunner {
 
 	@Autowired
 	private ReasoningActivator reasoningActivator;
+	@Autowired
+	private ViePEPOpenstackClientServiceImpl viePEPOpenstackClientService;
+
+	@Value("${simulate}")
+	private boolean simulate;
 
 	public static void main(String[] args) {
 		SpringApplication.run(ViePepApplication.class, args);
@@ -31,6 +38,13 @@ public class ViePepApplication implements CommandLineRunner {
 			String input = "";
 
 			started = true;
+
+			if(!simulate) {
+				viePEPOpenstackClientService.init();
+			}
+
+
+
 			reasoningActivator.initialize();
 
 

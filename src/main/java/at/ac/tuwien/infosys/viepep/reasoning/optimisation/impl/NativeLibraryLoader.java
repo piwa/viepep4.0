@@ -32,7 +32,7 @@ public abstract class NativeLibraryLoader {
 
     static {
         try {
-            System.loadLibrary("cplex1262");
+//            System.loadLibrary("cplex1262");
 
             LOG.info("Loading from classpath successful");
             useCPLEX = true;
