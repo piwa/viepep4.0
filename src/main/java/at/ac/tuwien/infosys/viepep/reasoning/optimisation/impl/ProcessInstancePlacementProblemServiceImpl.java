@@ -154,13 +154,15 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
 
         Result solve = solver.solve(problem);
 
-        log.info("------------------------- Solved  -------------------------");
-        log.info(solve.toString());
+
 
         int i = 0;
         StringBuilder vars = new StringBuilder();
 
         if (solve != null) {
+            log.info("------------------------- Solved  -------------------------");
+            log.info(solve.toString());
+
             log.info("------------------------- Variables -------------------------");
             for (Object variable : problem.getVariables()) {
                 vars.append(i).append(": ").append(variable).append("=").append(solve.get(variable)).append(", ");

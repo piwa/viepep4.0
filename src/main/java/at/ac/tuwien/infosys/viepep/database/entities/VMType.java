@@ -12,9 +12,9 @@ public enum VMType {
 //    AWS_SINGLE_CORE(4, 1, 2048, 9, "t2.small", "aws"),
 //    AWS_DUAL_CORE(5, 2, 7680, 15, "m3.large", "aws"),
 //    AWS_QUAD_CORE(6, 4, 15360, 30, "m3.xlarge", "aws");
-    AWS_SINGLE_CORE(4, 1, 2048, 9, "t2.small", "internal"),
-    AWS_DUAL_CORE(5, 2, 7680, 15, "m3.large", "internal"),
-    AWS_QUAD_CORE(6, 4, 15360, 30, "m3.xlarge", "internal");
+    AWS_SINGLE_CORE(4, 1, 960, 9, "m1.small", "internal"),
+    AWS_DUAL_CORE(5, 2, 3750, 15, "m1.medium", "internal"),
+    AWS_QUAD_CORE(6, 4, 7680, 30, "m1.large", "internal");
     private final double costs;
     private final int identifier;
     public final int cores;
