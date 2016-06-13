@@ -17,7 +17,6 @@ public class ReportDaoService {
     private ReportRepository reportRepository;
 
     public void save(ReportingAction reportingAction) {
-//        log.info("Save report: " + reportingAction.toString());
         reportRepository.save(reportingAction);
     }
 

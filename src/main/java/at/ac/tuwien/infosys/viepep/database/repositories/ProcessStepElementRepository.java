@@ -11,11 +11,6 @@ import java.util.List;
  */
 public interface ProcessStepElementRepository extends CrudRepository<ProcessStep, Long> {
 
-    @Query("select p from ProcessStep p where p.finishedAt is null and p.startDate is null")
-    List<ProcessStep> getUnfinishedSteps();
-
     @Query("select p from ProcessStep p where p.scheduledAtVM.id = ?1")
     List<ProcessStep> findByVM(Long virtualMachineId) ;
-
-    <S extends ProcessStep> S save(S entity);
 }

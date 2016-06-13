@@ -26,8 +26,6 @@ public class WorkflowDaoService {
     @Autowired
     private PlacementHelper placementHelperImpl;
     @Autowired
-    private ElementDaoService elementDaoService;
-    @Autowired
     private VirtualMachineDaoService virtualMachineDaoService;
 
 

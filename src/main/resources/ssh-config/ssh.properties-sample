@@ -1,0 +1,3 @@
+public-key.path = TODO insert path for your key here
+private-key.path = TODO insert path for your key here
+ssh.username = TODO insert ssh username here
