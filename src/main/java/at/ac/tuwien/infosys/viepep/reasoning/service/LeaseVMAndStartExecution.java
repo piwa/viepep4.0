@@ -1,4 +1,4 @@
-package at.ac.tuwien.infosys.viepep.reasoning;
+package at.ac.tuwien.infosys.viepep.reasoning.service;
 
 import at.ac.tuwien.infosys.viepep.connectors.ViePEPClientService;
 import at.ac.tuwien.infosys.viepep.database.entities.ProcessStep;
@@ -33,7 +33,7 @@ public class LeaseVMAndStartExecution {
     @Autowired
     private ProcessStepDaoService processStepDaoService;
     @Autowired
-    private ProcessExecution processExecution;
+    private ServiceExecution serviceExecution;
 
     @Value("${simulate}")
     private boolean simulate;
@@ -90,7 +90,7 @@ public class LeaseVMAndStartExecution {
 
     public void startExecutions(final List<ProcessStep> processSteps, final VirtualMachine virtualMachine) {
         for (final ProcessStep processStep : processSteps) {
-            processExecution.startExecution(processStep, virtualMachine);
+            serviceExecution.startExecution(processStep, virtualMachine);
         }
     }
 

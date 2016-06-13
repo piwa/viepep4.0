@@ -1,8 +1,8 @@
-package at.ac.tuwien.infosys.viepep.reasoning;
+package at.ac.tuwien.infosys.viepep.reasoning.service;
 
 import at.ac.tuwien.infosys.viepep.database.entities.ProcessStep;
 import at.ac.tuwien.infosys.viepep.database.entities.VirtualMachine;
-import at.ac.tuwien.infosys.viepep.reasoning.dto.InvocationResultDTO;
+import at.ac.tuwien.infosys.viepep.reasoning.service.dto.InvocationResultDTO;
 import com.google.common.base.Stopwatch;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
@@ -30,8 +30,7 @@ public class ServiceInvoker {
                 .setConnectTimeout(timeout * 1000)
                 .setConnectionRequestTimeout(timeout * 1000)
                 .setSocketTimeout(timeout * 1000).build();
-        httpclient =
-                HttpClientBuilder.create().setDefaultRequestConfig(config).disableAutomaticRetries().build();
+        httpclient = HttpClientBuilder.create().setDefaultRequestConfig(config).disableAutomaticRetries().build();
     }
 
     /**

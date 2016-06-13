@@ -30,15 +30,9 @@ public class WorkflowDaoService {
     @Autowired
     private VirtualMachineDaoService virtualMachineDaoService;
 
-/*
-    public void saveWorkflow(WorkflowElement workflow) {
-//        log.info("Save workflowElement: " + workflow.toString());
-//        workflowElementRepository.save(workflow);
-        placementHelperImpl.addWorkflowInstance(workflow);
-    }
-*/
 
-    public void finishWorkflow(WorkflowElement workflow) {
+
+    public WorkflowElement finishWorkflow(WorkflowElement workflow) {
         log.info("-- Update workflowElement: " + workflow.toString());
 
         List<Element> flattedWorkflow = placementHelperImpl.getFlattenWorkflow(new ArrayList<>(), workflow);
@@ -80,17 +74,8 @@ public class WorkflowDaoService {
             }
 
         }
-        workflowElementRepository.save(workflow);
+        return workflowElementRepository.save(workflow);
     }
 
-    /*
-    public List<WorkflowElement> getAllWorkflowElementsList() {
-        Iterator<WorkflowElement> iterator = workflowElementRepository.findAll().iterator();
 
-
-        List<WorkflowElement> resultList = Lists.newArrayList(iterator);
-
-        return resultList;
-    }
-*/
 }

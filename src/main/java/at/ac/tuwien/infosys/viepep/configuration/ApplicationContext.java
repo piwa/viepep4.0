@@ -1,10 +1,7 @@
 package at.ac.tuwien.infosys.viepep.configuration;
 
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.*;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -20,6 +17,10 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @EnableRetry
 @EnableScheduling
 @EnableAsync
+@PropertySources({
+        @PropertySource("classpath:database-config/mysql.properties"),
+        @PropertySource("classpath:application.properties")
+})
 public class ApplicationContext  {
 
     @Bean

@@ -1,11 +1,11 @@
-package at.ac.tuwien.infosys.viepep.reasoning;
+package at.ac.tuwien.infosys.viepep.reasoning.service;
 
 import at.ac.tuwien.infosys.viepep.database.entities.Element;
 import at.ac.tuwien.infosys.viepep.database.entities.ProcessStep;
 import at.ac.tuwien.infosys.viepep.database.entities.VirtualMachine;
 import at.ac.tuwien.infosys.viepep.database.entities.WorkflowElement;
 import at.ac.tuwien.infosys.viepep.database.inmemory.services.CacheWorkflowService;
-import at.ac.tuwien.infosys.viepep.reasoning.dto.InvocationResultDTO;
+import at.ac.tuwien.infosys.viepep.reasoning.service.dto.InvocationResultDTO;
 import at.ac.tuwien.infosys.viepep.reasoning.optimisation.PlacementHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +23,7 @@ import java.util.List;
 @Component
 @Scope("prototype")
 @Slf4j
-public class ProcessExecution {
+public class ServiceExecution {
 
     @Autowired
     private ServiceInvoker serviceInvoker;

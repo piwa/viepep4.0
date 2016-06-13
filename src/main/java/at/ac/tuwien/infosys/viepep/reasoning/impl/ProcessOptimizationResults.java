@@ -1,4 +1,4 @@
-package at.ac.tuwien.infosys.viepep.reasoning;
+package at.ac.tuwien.infosys.viepep.reasoning.impl;
 
 import at.ac.tuwien.infosys.viepep.database.entities.Element;
 import at.ac.tuwien.infosys.viepep.database.entities.ProcessStep;
@@ -8,6 +8,7 @@ import at.ac.tuwien.infosys.viepep.database.inmemory.services.CacheVirtualMachin
 import at.ac.tuwien.infosys.viepep.database.inmemory.services.CacheWorkflowService;
 import at.ac.tuwien.infosys.viepep.reasoning.optimisation.PlacementHelper;
 import at.ac.tuwien.infosys.viepep.reasoning.optimisation.impl.ProcessInstancePlacementProblemServiceImpl;
+import at.ac.tuwien.infosys.viepep.reasoning.service.ServiceExecutionController;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.javailp.Result;
@@ -27,24 +28,19 @@ import java.util.List;
 @Component
 @Scope("prototype")
 @Setter
-public class ProcessResults {//implements Runnable {
+public class ProcessOptimizationResults {
 
     @Autowired
     private PlacementHelper placementHelper;
     @Autowired
-    private ProcessInvocation processInvocation;
+    private ServiceExecutionController serviceExecutionController;
     @Autowired
     private CacheVirtualMachineService cacheVirtualMachineService;
     @Autowired
     private CacheWorkflowService cacheWorkflowService;
 
-    private Result optimize;
-    private Date tau_t;
-
     @Async
     public void processResults(Result optimize, Date tau_t) {
-        this.optimize = optimize;
-        this.tau_t = tau_t;
 
         //start VMs
         List<VirtualMachine> vmsToStart = new ArrayList<>();
@@ -134,7 +130,7 @@ public class ProcessResults {//implements Runnable {
         stringBuilder2.append("------------------------------------------------------------------\n");
         log.info(stringBuilder2.toString().replaceAll("(\r\n|\n)", "\r\n                                                                                                     "));
 
-        processInvocation.startInvocation(scheduledForExecution);
+        serviceExecutionController.startInvocation(scheduledForExecution);
 
         cleanupVMs(tau_t);
     }

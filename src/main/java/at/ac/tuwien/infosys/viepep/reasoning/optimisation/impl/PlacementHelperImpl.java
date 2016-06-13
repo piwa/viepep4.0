@@ -158,13 +158,8 @@ public class PlacementHelperImpl implements PlacementHelper {
 
     @Override
     public List<Element> getRunningSteps(boolean update) {
-        /*
-        if (allWorkflowInstances.isEmpty() || finishWorkflow) {
-            allWorkflowInstances = workflowDaoService.getAllWorkflowElementsList();             // TODO use getNextWorkflowInstances?
-        }
-        */
         List<Element> running = new ArrayList<>();
-        for (WorkflowElement allWorkflowInstance : cacheWorkflowService.getAllWorkflowElements()) {
+        for (WorkflowElement allWorkflowInstance : cacheWorkflowService.getAllWorkflowElements()) {     // TODO use getNextWorkflowInstances?
             running.addAll(getRunningProcessSteps(allWorkflowInstance.getElements()));
         }
 

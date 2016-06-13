@@ -1,4 +1,4 @@
-package at.ac.tuwien.infosys.viepep.reasoning.dto;
+package at.ac.tuwien.infosys.viepep.reasoning.service.dto;
 
 /**
  * User: Philipp Hoenisch

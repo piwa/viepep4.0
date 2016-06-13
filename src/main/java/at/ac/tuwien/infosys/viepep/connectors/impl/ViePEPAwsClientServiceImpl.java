@@ -40,7 +40,7 @@ public class ViePEPAwsClientServiceImpl implements ViePEPAwsClientService {
     private boolean enabled = false;
 
     private ViePEPAwsClientServiceImpl() {
-        init();
+
     }
 
     private void loadSettings() {
@@ -70,6 +70,7 @@ public class ViePEPAwsClientServiceImpl implements ViePEPAwsClientService {
         LOG.info("\n---------------------------------------------------------");
     }
 
+    @Override
     public void init() {
         loadSettings();
 

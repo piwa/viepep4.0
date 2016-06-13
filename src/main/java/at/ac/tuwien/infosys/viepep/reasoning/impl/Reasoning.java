@@ -1,4 +1,4 @@
-package at.ac.tuwien.infosys.viepep.reasoning;
+package at.ac.tuwien.infosys.viepep.reasoning.impl;
 
 import at.ac.tuwien.infosys.viepep.database.entities.ProcessStep;
 import at.ac.tuwien.infosys.viepep.database.entities.WorkflowElement;
@@ -11,11 +11,13 @@ import net.sf.javailp.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Component;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Future;
 
 /**
  * Created by philippwaibel on 17/05/16.
@@ -26,7 +28,7 @@ import java.util.List;
 public class Reasoning {
 
     @Autowired
-    private ProcessResults processResults;
+    private ProcessOptimizationResults processOptimizationResults;
     @Autowired
     private ProcessInstancePlacementProblemService resourcePredictionService;
     @Autowired
@@ -43,7 +45,7 @@ public class Reasoning {
 
 
     @Async
-    public void runReasoning(Date date) throws InterruptedException {
+    public Future<Boolean> runReasoning(Date date) throws InterruptedException {
         tau_t = date;
 
         resourcePredictionService.initializeParameters();
@@ -73,7 +75,6 @@ public class Reasoning {
                     else {
                         emptyCounter = 0;
                     }
-//                    if (count >= 30 && empty) {
                     if ((count >= 150 && empty) || emptyCounter > 4) {
                         run = false;
                     }
@@ -105,7 +106,6 @@ public class Reasoning {
                     log.info(message + " : delayed in seconds: " + delay / 1000);
                     delayed++;
                 }
-//                workflowDaoService.finishWorkflow(workflow);
                 cacheWorkflowService.deleteRunningWorkflowInstance(workflow);
             } else {
                 log.info(" LastDone: not yet finished");
@@ -118,6 +118,7 @@ public class Reasoning {
             workflowDaoService.finishWorkflow(workflowElement);
         }
 
+        return new AsyncResult<>(true);
     }
 
     private void waitUntilAllProcessDone() {
@@ -157,7 +158,7 @@ public class Reasoning {
         final Result finalOptimize = optimize;
         final Date finalTau_t_ = tau_t_0;
 
-        processResults.processResults(finalOptimize, finalTau_t_);
+        processOptimizationResults.processResults(finalOptimize, finalTau_t_);
 
         return difference;
     }
