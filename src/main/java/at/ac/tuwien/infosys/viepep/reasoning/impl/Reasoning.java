@@ -1,7 +1,8 @@
-package at.ac.tuwien.infosys.viepep.reasoning;
+package at.ac.tuwien.infosys.viepep.reasoning.impl;
 
 import at.ac.tuwien.infosys.viepep.database.entities.ProcessStep;
 import at.ac.tuwien.infosys.viepep.database.entities.WorkflowElement;
+import at.ac.tuwien.infosys.viepep.database.inmemory.services.CacheWorkflowService;
 import at.ac.tuwien.infosys.viepep.database.services.WorkflowDaoService;
 import at.ac.tuwien.infosys.viepep.reasoning.optimisation.PlacementHelper;
 import at.ac.tuwien.infosys.viepep.reasoning.optimisation.ProcessInstancePlacementProblemService;
@@ -10,11 +11,13 @@ import net.sf.javailp.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Component;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Future;
 
 /**
  * Created by philippwaibel on 17/05/16.
@@ -22,14 +25,16 @@ import java.util.List;
 @Component
 @Scope("prototype")
 @Slf4j
-public class Reasoning {//implements Runnable {
+public class Reasoning {
 
     @Autowired
-    private ProcessResults processResults;
+    private ProcessOptimizationResults processOptimizationResults;
     @Autowired
     private ProcessInstancePlacementProblemService resourcePredictionService;
     @Autowired
     private PlacementHelper placementHelper;
+    @Autowired
+    private CacheWorkflowService cacheWorkflowService;
     @Autowired
     private WorkflowDaoService workflowDaoService;
 
@@ -40,14 +45,10 @@ public class Reasoning {//implements Runnable {
 
 
     @Async
-    public void runReasoning(Date date) throws InterruptedException {
+    public Future<Boolean> runReasoning(Date date) throws InterruptedException {
         tau_t = date;
-/*        Thread thread = new Thread(this);
-        thread.start();
-    }
 
-    public void run() {
-*/        resourcePredictionService.initializeParameters();
+        resourcePredictionService.initializeParameters();
         run = true;
 
         Result optimize = null;
@@ -64,18 +65,17 @@ public class Reasoning {//implements Runnable {
 
                     Thread.sleep(difference);
 
-                    //update tau t for next round
+                    //finishWorkflow tau t for next round
                     tau_t_0 = new Date();
                     tau_t_0_time = tau_t_0.getTime();
-                    boolean empty = placementHelper.getNextWorkflowInstances(true).isEmpty();
+                    boolean empty = cacheWorkflowService.getRunningWorkflowInstances().isEmpty();
                     if(empty) {
                         emptyCounter++;
                     }
                     else {
                         emptyCounter = 0;
                     }
-//                    if (count >= 30 && empty) {
-                    if ((count >= 100 && empty) || emptyCounter > 3) {
+                    if ((count >= 150 && empty) || emptyCounter > 4) {
                         run = false;
                     }
                     count++;
@@ -88,7 +88,7 @@ public class Reasoning {//implements Runnable {
 
         waitUntilAllProcessDone();
 
-        List<WorkflowElement> workflows = workflowDaoService.getAllWorkflowElementsList();
+        List<WorkflowElement> workflows = cacheWorkflowService.getAllWorkflowElements();
         int delayed = 0;
         for (WorkflowElement workflow : workflows) {
             log.info("workflow: " + workflow.getName() + " Deadline: " + formatter.format(new Date(workflow.getDeadline())));
@@ -106,13 +106,19 @@ public class Reasoning {//implements Runnable {
                     log.info(message + " : delayed in seconds: " + delay / 1000);
                     delayed++;
                 }
-                workflowDaoService.update(workflow);
+                cacheWorkflowService.deleteRunningWorkflowInstance(workflow);
             } else {
                 log.info(" LastDone: not yet finished");
             }
         }
         log.info(String.format("From %s workflows, %s where delayed", workflows.size(), delayed));
 
+
+        for(WorkflowElement workflowElement : cacheWorkflowService.getAllWorkflowElements()) {
+            workflowDaoService.finishWorkflow(workflowElement);
+        }
+
+        return new AsyncResult<>(true);
     }
 
     private void waitUntilAllProcessDone() {
@@ -152,8 +158,12 @@ public class Reasoning {//implements Runnable {
         final Result finalOptimize = optimize;
         final Date finalTau_t_ = tau_t_0;
 
-        processResults.processResults(finalOptimize, finalTau_t_);
+        processOptimizationResults.processResults(finalOptimize, finalTau_t_);
 
         return difference;
+    }
+
+    public void stop() {
+        this.run = false;
     }
 }

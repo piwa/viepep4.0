@@ -98,10 +98,12 @@ public class VirtualMachine implements Serializable {
     public VirtualMachine() {
     }
 
+    /*
     @Override
     public int hashCode() {
         return Math.toIntExact(id);
     }
+*/
 
     @Override
     public boolean equals(Object obj) {

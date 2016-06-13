@@ -40,7 +40,7 @@ public class ViePEPAwsClientServiceImpl implements ViePEPAwsClientService {
     private boolean enabled = false;
 
     private ViePEPAwsClientServiceImpl() {
-        init();
+
     }
 
     private void loadSettings() {
@@ -50,7 +50,7 @@ public class ViePEPAwsClientServiceImpl implements ViePEPAwsClientService {
             if (propertyFile != null) {
                 prop.load(new FileInputStream(propertyFile));
             } else {
-                propertyFile = "cloud-config/viepep2.0.properties";
+                propertyFile = "cloud-config/viepep4.0.properties";
                 prop.load(getClass().getClassLoader().getResourceAsStream(propertyFile));
             }
 
@@ -70,6 +70,7 @@ public class ViePEPAwsClientServiceImpl implements ViePEPAwsClientService {
         LOG.info("\n---------------------------------------------------------");
     }
 
+    @Override
     public void init() {
         loadSettings();
 

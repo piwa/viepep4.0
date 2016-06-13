@@ -1,11 +1,7 @@
 package at.ac.tuwien.infosys.viepep.configuration;
 
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.*;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -21,7 +17,10 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @EnableRetry
 @EnableScheduling
 @EnableAsync
-@EnableCaching
+@PropertySources({
+        @PropertySource("classpath:database-config/mysql.properties"),
+        @PropertySource("classpath:application.properties")
+})
 public class ApplicationContext  {
 
     @Bean
@@ -35,30 +34,11 @@ public class ApplicationContext  {
     @Bean(name = "serviceProcessExecuter")
     public ThreadPoolTaskExecutor serviceProcessExecuter() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-//        executor.setMaxPoolSize(200);
-//        executor.setCorePoolSize(150);
-//        executor.setQueueCapacity(150);
         executor.setMaxPoolSize(150);
         executor.setCorePoolSize(100);
         executor.setQueueCapacity(50);
         executor.initialize();
         return executor;
     }
-/*
-    @Bean
-    public CacheManager cacheManager() {
 
-        SimpleCacheManager cacheManager = new SimpleCacheManager();
-
-        List<Cache> cacheList = new ArrayList<>();
-//        cacheList.add(new ConcurrentMapCache("WorkflowElementCache"));
-        cacheList.add(new ConcurrentMapCache("VirtualMachineCache"));
-//        cacheList.add(new ConcurrentMapCache("ProcessStepElementCache"));
-        cacheList.add(new ConcurrentMapCache("ElementCache"));
-
-        cacheManager.setCaches(cacheList);
-
-        return cacheManager;
-    }
-    */
 }

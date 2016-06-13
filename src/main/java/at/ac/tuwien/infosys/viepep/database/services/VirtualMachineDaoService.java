@@ -32,11 +32,15 @@ public class VirtualMachineDaoService {
         return Lists.newArrayList(virtualMachineRepository.findAll().iterator());
     }
 
-    public void updateVM(VirtualMachine virtualMachine) {
-        virtualMachineRepository.save(virtualMachine);
+    public VirtualMachine updateVM(VirtualMachine virtualMachine) {
+        return virtualMachineRepository.save(virtualMachine);
     }
 
     public VirtualMachine update(VirtualMachine virtualMachine) {
         return virtualMachineRepository.save(virtualMachine);
+    }
+
+    public VirtualMachine getVm(VirtualMachine vm) {
+        return virtualMachineRepository.findOne(vm.getId());
     }
 }

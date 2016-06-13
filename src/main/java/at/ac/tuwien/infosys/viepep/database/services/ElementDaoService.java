@@ -22,7 +22,7 @@ public class ElementDaoService {
     public void update(Element element) {
 //        log.info("Save element: " + element.toString());
         elementRepository.save(element);
-        placementHelperImpl.getNextWorkflowInstances(true);
+//        placementHelperImpl.addWorkflowInstance(element);
     }
 
 }

@@ -1,7 +1,8 @@
 package at.ac.tuwien.infosys.viepep.reasoning.optimisation.impl;
 
 import at.ac.tuwien.infosys.viepep.database.entities.*;
-import at.ac.tuwien.infosys.viepep.database.services.VirtualMachineDaoService;
+import at.ac.tuwien.infosys.viepep.database.inmemory.services.CacheVirtualMachineService;
+import at.ac.tuwien.infosys.viepep.database.inmemory.services.CacheWorkflowService;
 import at.ac.tuwien.infosys.viepep.reasoning.optimisation.PlacementHelper;
 import at.ac.tuwien.infosys.viepep.reasoning.optimisation.ProcessInstancePlacementProblemService;
 import ilog.concert.IloException;
@@ -25,11 +26,13 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
     @Autowired
     private PlacementHelper placementHelper;
     @Autowired
-    private VirtualMachineDaoService virtualMachineDaoService;
+    private CacheVirtualMachineService cacheVirtualMachineService;
+    @Autowired
+    private CacheWorkflowService cacheWorkflowService;
 
     private static final long SERVICE_DEPLOY_TIME = 40000L;
     public static final Object SYNC_OBJECT = "Sync_Lock";
-    private static final boolean BASELINE_RUN = true;           // has to be true that the internal storage is filled first
+    private static final boolean BASELINE_RUN = false;           // has to be true that the internal storage is filled first
 
     private static final double EXTERNAL_CLOUD_FACTOR = 1000;
     private static long VM_STARTUP_TIME = 40000L;
@@ -37,7 +40,7 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
     private static final double OMEGA_F_C_VALUE = 0.001;
 
     private Date tau_t;
-    private static final long TIMESLOT_DURATION = 30 * 1000 * 3; //timeslot duration is minimum 1 minute
+    private static final long TIMESLOT_DURATION = 30 * 1000 * 4; //timeslot duration is minimum 1 minute
     public static final long LEASING_DURATION = 60 * 1000 * 5; //timeslot duration is minimum 5 minutes
 
     private int V = 0;
@@ -63,7 +66,7 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
         /**
          * initialize vm map
          */
-        List<VirtualMachine> vMs = placementHelper.getVMs(false);
+        List<VirtualMachine> vMs = cacheVirtualMachineService.getVMs();
         updateVMap(vMs);
 
 
@@ -81,8 +84,8 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
         //cleanups
         synchronized (SYNC_OBJECT) {
             placementHelper.setFinishedWorkflows();
-            placementHelper.clear();
-            updateVMap(placementHelper.getVMs(false));
+
+            updateVMap(cacheVirtualMachineService.getVMs());
             updateUsageMap();
             allRunningSteps = null;
             nextSteps = new HashMap<>();
@@ -97,101 +100,96 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
             }
         }
 
-            log.info("---- after initial");
-
-            this.tau_t = tau_t;
+        this.tau_t = tau_t;
 //        M = 100000 / 1000;
-            M = 10000000;
-            SolverFactory factory;
-            if (useCPLEX) {
-                factory = new SolverFactoryCPLEX();//use cplex
-            }
-            else {
-                factory = new SolverFactoryLpSolve();//use lp solve
-            }
+        M = 10000000;
+        SolverFactory factory;
+        if (useCPLEX) {
+            factory = new SolverFactoryCPLEX();//use cplex
+        }
+        else {
+            factory = new SolverFactoryLpSolve();//use lp solve
+        }
 //        factory.setParameter(Solver.POSTSOLVE, 2);
-            factory.setParameter(Solver.VERBOSE, 1);
-            factory.setParameter(Solver.TIMEOUT, 600); // set timeout to 600 seconds
+        factory.setParameter(Solver.VERBOSE, 0);
+        factory.setParameter(Solver.TIMEOUT, 600); // set timeout to 600 seconds
 
-            problem = new Problem();
-            addObjective_1(problem);
-            addConstraint_2(problem);
-            addConstraint_3(problem); //DS: constraints 4-7 are realized implicitly by the recursive method generateConstraintsForCalculatingExecutionTime
-            addConstraint_4(problem);
-            addConstraint_12(problem);
-            addConstraint_13(problem);
-            addConstraint_14_16(problem);
-            addConstraint_15_17(problem);
-            addConstraint_18(problem);
-            addConstraint_19(problem);
-            addConstraint_20(problem);
-            addConstraint_21(problem);
-            addConstraint_22(problem);
-            addConstraint_23(problem);
-            addConstraint_24(problem);
-            addConstraint_25(problem);
-            addConstraint_26(problem);
-            addConstraint_27(problem);
-            addConstraint_28(problem);
-            addConstraint_29(problem);
-            addConstraint_30(problem);
-            addConstraint_31(problem);
+        problem = new Problem();
+        addObjective_1(problem);
+        addConstraint_2(problem);
+        addConstraint_3(problem); //DS: constraints 4-7 are realized implicitly by the recursive method generateConstraintsForCalculatingExecutionTime
+        addConstraint_4(problem);
+        addConstraint_12(problem);
+        addConstraint_13(problem);
+        addConstraint_14_16(problem);
+        addConstraint_15_17(problem);
+        addConstraint_18(problem);
+        addConstraint_19(problem);
+        addConstraint_20(problem);
+        addConstraint_21(problem);
+        addConstraint_22(problem);
+        addConstraint_23(problem);
+        addConstraint_24(problem);
+        addConstraint_25(problem);
+        addConstraint_26(problem);
+        addConstraint_27(problem);
+        addConstraint_28(problem);
+        addConstraint_29(problem);
+        addConstraint_30(problem);
+        addConstraint_31(problem);
 
-            Solver solver = new ViePEPSolverCPLEX(); // factory.get();
-            if (useCPLEX) {
-                ((SolverCPLEX) solver).addHook(new SolverCPLEX.Hook() {
-                    @Override
-                    public void call(IloCplex cplex, Map<Object, IloNumVar> varToNum) {
-                        try {
-                            cplex.setParam(IloCplex.DoubleParam.TiLim, 60);
-                        } catch (IloException e) {
-                            e.printStackTrace();
-                        }
+        Solver solver = new ViePEPSolverCPLEX(); // factory.get();
+        if (useCPLEX) {
+            ((SolverCPLEX) solver).addHook(new SolverCPLEX.Hook() {
+                @Override
+                public void call(IloCplex cplex, Map<Object, IloNumVar> varToNum) {
+                    try {
+                        cplex.setParam(IloCplex.DoubleParam.TiLim, 60);
+                    } catch (IloException e) {
+                        e.printStackTrace();
                     }
-                });
-            }
-
-            log.info("---- start solver");
-            Result solve = solver.solve(problem);
-
-            log.info("\n-------------------------\nSolved:   \n" + solve + "\n" +
-                    "-------------------------\n");
-
-
-            int i = 0;
-            StringBuilder vars = new StringBuilder();
-
-
-            log.info(printCollections());
-
-            vars.append("\n-------------------------\nVariables " + "-------------------------\n");
-            if (solve != null) {
-                for (Object variable : problem.getVariables()) {
-                    vars.append(i).append(": ").append(variable).append("=").append(solve.get(variable)).append(", ");
-                    i++;
                 }
-                log.info(vars.toString());
-                log.info("\n-------------------------\n--------- " + "-------------------------\n");
+            });
+        }
+
+        Result solve = solver.solve(problem);
+
+
+
+        int i = 0;
+        StringBuilder vars = new StringBuilder();
+
+        if (solve != null) {
+            log.info("------------------------- Solved  -------------------------");
+            log.info(solve.toString());
+
+            log.info("------------------------- Variables -------------------------");
+            for (Object variable : problem.getVariables()) {
+                vars.append(i).append(": ").append(variable).append("=").append(solve.get(variable)).append(", ");
+                i++;
+            }
+            log.info(vars.toString());
+            log.info("-----------------------------------------------------------");
+        }
+
+
+        if (solve == null) {
+            log.error("-----------------------------------------------------------");
+            Collection<Object> variables = problem.getVariables();
+            i = 0;
+            for (Object variable : variables) {
+                log.error(i + " " + variable);
+                i++;
             }
 
+            log.error("-----------------------------------------------------------");
+            log.error(problem.getConstraints().toString());
+            log.error("-----------------------------------------------------------");
+            log.error(problem.getObjective().toString());
+            log.error("-----------------------------------------------------------");
 
-            if (solve == null) {
-                System.out.println("\n-----------------------------\n");
-                Collection<Object> variables = problem.getVariables();
-                i = 0;
-                for (Object variable : variables) {
-                    System.out.println(i + " " + variable);
-                    i++;
-                }
-
-                System.out.println("\n-----------------------------\n");
-                System.out.println(problem.getConstraints());
-                System.out.println("\n-----------------------------\n");
-                System.out.println(problem.getObjective());
-                System.out.println("\n-----------------------------\n");
-
-            }
-            return solve;
+        }
+        return solve;
 
     }
 
@@ -202,36 +200,36 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
         builder.append("------- collections ---------\n");
 
         builder.append("\n--------- vmMap ---------");
-        for(Map.Entry<VMType, List<VirtualMachine>> vmMapEntry : vmMap.entrySet()) {
+        for (Map.Entry<VMType, List<VirtualMachine>> vmMapEntry : vmMap.entrySet()) {
 
             builder.append("\n").append(vmMapEntry.getKey()).append(":");
-            for(VirtualMachine vm : vmMapEntry.getValue()) {
+            for (VirtualMachine vm : vmMapEntry.getValue()) {
                 builder.append("\n").append("     ").append(vm.toString());
             }
         }
 
         builder.append("\n---- allRunningSteps ----");
-        for(Element element : allRunningSteps) {
+        for (Element element : allRunningSteps) {
             builder.append("\n").append(element.toString());
         }
 
         builder.append("\n- nextWorkflowInstances -");
-        for(WorkflowElement workflowElement : nextWorkflowInstances) {
+        for (WorkflowElement workflowElement : nextWorkflowInstances) {
             builder.append("\n").append(workflowElement.toString());
         }
 
         builder.append("\n------- nextSteps --------");
-        for(Map.Entry<String, List<Element>> nextStepEntry : nextSteps.entrySet()) {
+        for (Map.Entry<String, List<Element>> nextStepEntry : nextSteps.entrySet()) {
             builder.append("\n").append(nextStepEntry.getKey()).append(":");
-            for(Element element : nextStepEntry.getValue()) {
+            for (Element element : nextStepEntry.getValue()) {
                 builder.append("\n").append("     ").append(element.toString());
             }
         }
 
         builder.append("\n------ runningSteps -------");
-        for(Map.Entry<String, List<Element>> runningStepEntry : runningSteps.entrySet()) {
+        for (Map.Entry<String, List<Element>> runningStepEntry : runningSteps.entrySet()) {
             builder.append("\n").append(runningStepEntry.getKey()).append(":");
-            for(Element element : runningStepEntry.getValue()) {
+            for (Element element : runningStepEntry.getValue()) {
                 builder.append("\n").append("     ").append(element.toString());
             }
         }
@@ -626,10 +624,12 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
                     Linear linear = new Linear();
                     linear.add(1, variable);
                     boolean runsAt = vmName.equals(v + "_" + k);
-                    if (runsAt)
+                    if (runsAt) {
                         problem.add(linear, Operator.EQ, 1);
-                    else
+                    }
+                    else {
                         problem.add(linear, Operator.EQ, 0);
+                    }
                     problem.setVarUpperBound(variable, 1);
                     problem.setVarLowerBound(variable, 0);
                 }
@@ -765,10 +765,12 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
 
             if (stepId.getLastExecutedElement() == null) {
                 location = "internal";
-            } else {
+            }
+            else {
                 if (stepId.getLastExecutedElement().getScheduledAtVM() != null) {
                     location = stepId.getLastExecutedElement().getScheduledAtVM().getLocation();
-                } else {
+                }
+                else {
                     location = "internal";
                 }
             }
@@ -780,14 +782,17 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
                     if ("internal".equals(location)) {
                         if (v < internalTypes) {
                             linear.add(0, variable);
-                        } else {
+                        }
+                        else {
                             linear.add(stepId.getLastExecutedElement().getServiceType().getDataToTransfer(), variable);
                         }
 
-                    } else {
+                    }
+                    else {
                         if (v >= internalTypes) {
                             linear.add(0, variable);
-                        } else {
+                        }
+                        else {
                             linear.add(stepId.getLastExecutedElement().getServiceType().getDataToTransfer(), variable);
                         }
                     }
@@ -814,7 +819,8 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
             List<VirtualMachine> virtualMachines = new ArrayList<>();
             if (vmMap.containsKey(vm.getVmType())) {
                 virtualMachines.addAll(vmMap.get(vm.getVmType()));
-            } else {
+            }
+            else {
                 V++; //increase VM type
             }
             virtualMachines.add(vm);
@@ -858,8 +864,7 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
      */
     public List<WorkflowElement> getNextWorkflowInstances() {
         if (nextWorkflowInstances == null) {
-            log.info("getNextWorkflowInstances update");
-            nextWorkflowInstances = Collections.synchronizedList(new ArrayList<WorkflowElement>(placementHelper.getNextWorkflowInstances(false)));
+            nextWorkflowInstances = Collections.synchronizedList(new ArrayList<WorkflowElement>(cacheWorkflowService.getRunningWorkflowInstances()));
         }
         return nextWorkflowInstances;
     }
@@ -876,7 +881,7 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
     private List<Element> getNextSteps(Element workflow) {
         List<Element> list = new ArrayList<>();
         if (!nextSteps.containsKey(workflow.getName())) {
-            log.info("getNextSteps update");
+//            log.info("getNextSteps finishWorkflow");
             List<Element> nextSteps1 = Collections.synchronizedList(new ArrayList<Element>(placementHelper.getNextSteps(workflow.getName())));
             nextSteps.put(workflow.getName(), nextSteps1);
         }
@@ -890,7 +895,7 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
      */
     public List<Element> getRunningSteps(String workflowInstanceID) {
         if (!runningSteps.containsKey(workflowInstanceID)) {
-            log.info("getRunningSteps update");
+//            log.info("getRunningSteps finishWorkflow");
             List<Element> runningProcessSteps = Collections.synchronizedList(new ArrayList<Element>(placementHelper.getRunningProcessSteps(workflowInstanceID)));
             runningSteps.put(workflowInstanceID, runningProcessSteps);
         }
@@ -924,11 +929,13 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
         if (v < internalTypes) {
             //is a private VM
             return getVMType(v + 1).getCosts();
-        } else {
+        }
+        else {
             if (currentVMUsage.get(v - internalTypes) < K) {
                 //there are the same instances available on the private cloud
                 return getVMType(v + 1).getCosts() * EXTERNAL_CLOUD_FACTOR;
-            } else {
+            }
+            else {
 
                 for (int i = 0; i < V - v; i++) {
                     if (currentVMUsage.get(i) < K) {
@@ -957,9 +964,10 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
         ProcessStep processStep = (ProcessStep) step;
         long remainingExecutionTime = processStep.getRemainingExecutionTime(tau_t);
         if (processStep.isScheduled()) {
-            log.info("getRemainingExecutionTimeAndDeployTimes update");
+//            log.info("getRemainingExecutionTimeAndDeployTimes finishWorkflow");
             remainingExecutionTime += placementHelper.getRemainingSetupTime(processStep.getScheduledAtVM().getName(), tau_t);
-        } else {
+        }
+        else {
             remainingExecutionTime += SERVICE_DEPLOY_TIME + VM_STARTUP_TIME;
         }
         if (remainingExecutionTime < 0) {
@@ -1049,8 +1057,9 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
 
             Linear linearProcessStep = new Linear();
             linearProcessStep.add(1, processStepVariable);
-            if (((ProcessStep) elem).hasBeenExecuted())
+            if (((ProcessStep) elem).hasBeenExecuted()) {
                 problem.add(linearProcessStep, "=", 0);
+            }
             else {
                 long remainingExecutionTimeAndDeployTimes = getRemainingExecutionTimeAndDeployTimes(elem);
                 if (nextStepIds.contains(elem.getName())) {
@@ -1064,7 +1073,8 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
                 problem.add(linearProcessStep, "=", remainingExecutionTimeAndDeployTimes / 1000);
                 //e_p +  QoS + DeployTime + VMStartUp)*x  = QoS + DeployTime + VMStartUp
             }
-        } else if (elem instanceof Sequence) {
+        }
+        else if (elem instanceof Sequence) {
             String elementVariable = "e_s_" + elem.getName();
             linear.add(factor, elementVariable);
             List<Element> subElements = elem.getElements();
@@ -1074,7 +1084,8 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
                 generateConstraintsForCalculatingExecutionTime(subElement, linearForSubElements, problem, -1, nextStepIds);
             }
             problem.add(linearForSubElements, "=", 0);
-        } else if (elem instanceof ANDConstruct) {
+        }
+        else if (elem instanceof ANDConstruct) {
             String elementVariable = "e_a_" + elem.getName();
             linear.add(factor, elementVariable);
             List<Element> subElements = elem.getElements();
@@ -1085,7 +1096,8 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
                 problem.add(linearForSubElements, ">=", 0);
             }
 
-        } else if (elem instanceof XORConstruct) {
+        }
+        else if (elem instanceof XORConstruct) {
             String elementVariable = "e_x_" + elem.getName();
             linear.add(factor, elementVariable);
             List<Element> subElements = elem.getElements();
@@ -1093,7 +1105,8 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
             for (Element subElement : subElements) {
                 if (maxSubElement == null) {
                     maxSubElement = subElement;
-                } else if (subElement.calculateQoS() / 1000 > maxSubElement.calculateQoS() / 1000) {
+                }
+                else if (subElement.calculateQoS() / 1000 > maxSubElement.calculateQoS() / 1000) {
                     maxSubElement = subElement;
                 }
             }
@@ -1101,7 +1114,8 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
             linearForSubElements.add(1, elementVariable);
             generateConstraintsForCalculatingExecutionTime(maxSubElement, linearForSubElements, problem, -1, nextStepIds);
             problem.add(linearForSubElements, ">=", 0);
-        } else if (elem instanceof LoopConstruct) {
+        }
+        else if (elem instanceof LoopConstruct) {
             String elementVariable = "e_lo_" + elem.getName();
             linear.add(factor, elementVariable);
             Element subElement = elem.getElements().get(0);
@@ -1184,9 +1198,11 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
     public void addProcessStepTypesFromElement(Element elem, List<String> processStepTypes) {
         if (elem instanceof ProcessStep) {
             String typeOfP = ((ProcessStep) elem).getServiceType().name();
-            if (!processStepTypes.contains(typeOfP))
+            if (!processStepTypes.contains(typeOfP)) {
                 processStepTypes.add(typeOfP);
-        } else {
+            }
+        }
+        else {
             for (Element subElement : elem.getElements())
                 addProcessStepTypesFromElement(subElement, processStepTypes);
         }

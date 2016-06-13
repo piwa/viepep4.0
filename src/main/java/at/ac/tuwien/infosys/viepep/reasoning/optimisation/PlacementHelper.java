@@ -1,8 +1,8 @@
 package at.ac.tuwien.infosys.viepep.reasoning.optimisation;
 
 import at.ac.tuwien.infosys.viepep.database.entities.Element;
+import at.ac.tuwien.infosys.viepep.database.entities.ProcessStep;
 import at.ac.tuwien.infosys.viepep.database.entities.VirtualMachine;
-import at.ac.tuwien.infosys.viepep.database.entities.WorkflowElement;
 
 import java.util.Date;
 import java.util.List;
@@ -12,23 +12,26 @@ import java.util.List;
  */
 public interface PlacementHelper {
 
-    List<WorkflowElement> getNextWorkflowInstances(boolean cleanup);
 
-    List<Element> getRunningSteps(boolean update);
+    void setFinishedWorkflows();
 
-    void clear();
+    List<ProcessStep> getUnfinishedSteps();
+
+    List<Element> getFlattenWorkflow(List<Element> flattenWorkflowList, Element parentElement);
 
     List<Element> getNextSteps(String workflowInstanceId);
 
-    List<Element> getRunningProcessSteps(String workflowInstanceID);
+    List<Element> getRunningProcessSteps(String workflowInstanceId);
 
     long getRemainingSetupTime(String vmId, Date now);
 
-    List<VirtualMachine> getVMs(boolean update);
+    List<Element> getRunningSteps(boolean update);
 
-    WorkflowElement getWorkflowById(String workflowInstanceId);
+    List<Element> getRunningProcessSteps(List<Element> elements);
 
     void terminateVM(VirtualMachine virtualMachine);
 
-    void setFinishedWorkflows();
+    List<Element> getNextSteps(Element workflow);
+
+    void resetChilder(List<Element> elementList);
 }

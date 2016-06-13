@@ -2,19 +2,16 @@ package at.ac.tuwien.infosys.viepep.reasoning.optimisation.impl;
 
 import at.ac.tuwien.infosys.viepep.connectors.ViePEPClientService;
 import at.ac.tuwien.infosys.viepep.database.entities.*;
+import at.ac.tuwien.infosys.viepep.database.inmemory.services.CacheVirtualMachineService;
+import at.ac.tuwien.infosys.viepep.database.inmemory.services.CacheWorkflowService;
 import at.ac.tuwien.infosys.viepep.database.services.ElementDaoService;
 import at.ac.tuwien.infosys.viepep.database.services.ReportDaoService;
-import at.ac.tuwien.infosys.viepep.database.services.VirtualMachineDaoService;
-import at.ac.tuwien.infosys.viepep.database.services.WorkflowDaoService;
 import at.ac.tuwien.infosys.viepep.reasoning.optimisation.PlacementHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 /**
  * Created by philippwaibel on 18/05/16.
@@ -23,49 +20,26 @@ import java.util.Random;
 public class PlacementHelperImpl implements PlacementHelper {
 
     @Autowired
-    private WorkflowDaoService workflowDaoService;
-    @Autowired
     private ElementDaoService elementDaoService;
-    @Autowired
-    private VirtualMachineDaoService virtualMachineDaoService;
     @Autowired
     private ViePEPClientService viePEPClientService;
     @Autowired
     private ReportDaoService reportDaoService;
+    @Autowired
+    private CacheVirtualMachineService cacheVirtualMachineService;
+    @Autowired
+    private CacheWorkflowService cacheWorkflowService;
 
     @Value("${simulate}")
     private boolean simulate;
 
-    private List<WorkflowElement> nextWorkflows = new ArrayList<>();
-    private List<WorkflowElement> allWorkflowInstances = new ArrayList<>();
-    private List<VirtualMachine> virtualMachines = new ArrayList<>();
-
     @Override
-    public List<WorkflowElement> getNextWorkflowInstances(boolean cleanup) {
-        List<WorkflowElement> workflows = nextWorkflows;
-        if (nextWorkflows.isEmpty() || cleanup) {
-            workflows = new ArrayList<>();
-            List<WorkflowElement> list = workflowDaoService.getAllWorkflowElementsList();
-            workflows.addAll(list);
-        }
-
-        List<WorkflowElement> newWorkflows = new ArrayList<>();
-        for (WorkflowElement workflow : workflows) {
-//            List<Element> nextSteps = getNextSteps(workflow.getName());
-            if (workflow.getFinishedAt() == null) { //nextSteps != null && !nextSteps.isEmpty()) {
-                newWorkflows.add(workflow);
-            }
-        }
-        nextWorkflows = newWorkflows;
-        return nextWorkflows;
-    }
-
     public void setFinishedWorkflows() {
-        List<WorkflowElement> nextWorkflows = getNextWorkflowInstances(false);
+        List<WorkflowElement> nextWorkflows = cacheWorkflowService.getRunningWorkflowInstances();
 
         for (WorkflowElement workflow : nextWorkflows) {
 
-            List<Element> flattenWorkflowList = getFlattenWorkflow(new ArrayList<Element>(), workflow);
+            List<Element> flattenWorkflowList = getFlattenWorkflow(new ArrayList<>(), workflow);
 
             boolean workflowDone = true;
             Date finishedDate = new Date(0);
@@ -93,13 +67,30 @@ public class PlacementHelperImpl implements PlacementHelper {
                     }
                 }
                 workflow.setFinishedAt(finishedDate);
-                workflowDaoService.update(workflow);
+                cacheWorkflowService.deleteRunningWorkflowInstance(workflow);
             }
 
         }
 
     }
 
+    @Override
+    public List<ProcessStep> getUnfinishedSteps() {
+
+        List<ProcessStep> processSteps = new ArrayList<>();
+        for(WorkflowElement workflowElement : cacheWorkflowService.getAllWorkflowElements()) {
+            List<Element> flattenWorkflowList = getFlattenWorkflow(new ArrayList<Element>(), workflowElement);
+            for(Element element : flattenWorkflowList) {
+                if(element instanceof ProcessStep && element.getFinishedAt() == null && ((ProcessStep) element).getStartDate() == null) {
+                    processSteps.add((ProcessStep) element);
+                }
+            }
+        }
+
+        return processSteps;
+    }
+
+    @Override
     public List<Element> getFlattenWorkflow(List<Element> flattenWorkflowList, Element parentElement) {
         if (parentElement.getElements() != null) {
             for (Element element : parentElement.getElements()) {
@@ -112,9 +103,9 @@ public class PlacementHelperImpl implements PlacementHelper {
 
     @Override
     public List<Element> getNextSteps(String workflowInstanceId) {
-//        if (nextWorkflows.isEmpty()) {
-        List<WorkflowElement> nextWorkflows = getNextWorkflowInstances(false);
-//        }
+
+        List<WorkflowElement> nextWorkflows = cacheWorkflowService.getRunningWorkflowInstances();
+
         for (Element workflow : nextWorkflows) {
             if (workflow.getName().equals(workflowInstanceId)) {
                 List<Element> nextStepElements = new ArrayList<>();
@@ -127,7 +118,7 @@ public class PlacementHelperImpl implements PlacementHelper {
 
     @Override
     public List<Element> getRunningProcessSteps(String workflowInstanceId) {
-        List<WorkflowElement> workflowInstances = getNextWorkflowInstances(false);
+        List<WorkflowElement> workflowInstances = cacheWorkflowService.getRunningWorkflowInstances();
         for (Element workflowInstance : workflowInstances) {
             if (workflowInstance.getName().equals(workflowInstanceId)) {
                 List<Element> workflowElement = new ArrayList<>();
@@ -140,7 +131,7 @@ public class PlacementHelperImpl implements PlacementHelper {
 
     @Override
     public long getRemainingSetupTime(String vmId, Date now) {
-        for (VirtualMachine vm : virtualMachines) {
+        for (VirtualMachine vm : cacheVirtualMachineService.getVMs()) {
             if (vm.getName().equals(vmId)) {
                 Date startedAt = vm.getStartedAt();
                 if (vm.isLeased() && startedAt != null && !vm.isStarted()) {
@@ -156,8 +147,6 @@ public class PlacementHelperImpl implements PlacementHelper {
                     else {
                         return startedAtTime;
                     }
-
-//                    return remaining > 0 ? remaining : startupTime;  //should never be < 0
                 }
                 if (vm.isStarted()) {
                     return 0;
@@ -169,27 +158,18 @@ public class PlacementHelperImpl implements PlacementHelper {
 
     @Override
     public List<Element> getRunningSteps(boolean update) {
-        if (allWorkflowInstances.isEmpty() || update) {
-            allWorkflowInstances = workflowDaoService.getAllWorkflowElementsList();             // TODO use getNextWorkflowInstances?
-        }
         List<Element> running = new ArrayList<>();
-        for (WorkflowElement allWorkflowInstance : allWorkflowInstances) {
+        for (WorkflowElement allWorkflowInstance : cacheWorkflowService.getAllWorkflowElements()) {     // TODO use getNextWorkflowInstances?
             running.addAll(getRunningProcessSteps(allWorkflowInstance.getElements()));
         }
 
         return running;
     }
 
+
+
     @Override
-    public void clear() {
-
-        virtualMachines = new ArrayList<>();
-        nextWorkflows = new ArrayList<>();
-        allWorkflowInstances = new ArrayList<>();
-
-    }
-
-    private List<Element> getRunningProcessSteps(List<Element> elements) {
+    public List<Element> getRunningProcessSteps(List<Element> elements) {
         List<Element> steps = new ArrayList<>();
         for (Element element : elements) {
             if (element instanceof ProcessStep) {
@@ -210,29 +190,9 @@ public class PlacementHelperImpl implements PlacementHelper {
         return steps;
     }
 
-    @Override
-    public List<VirtualMachine> getVMs(boolean update) {
-        if (virtualMachines.isEmpty() || update) {
-            virtualMachines = virtualMachineDaoService.getAllVms();
-        }
-        return virtualMachines;
-    }
-
-    @Override
-    public WorkflowElement getWorkflowById(String workflowInstanceId) {
-//            if (nextWorkflows.isEmpty()) {
-        List<WorkflowElement> nextWorkflows = getNextWorkflowInstances(false);
-//            }
 
 
-        for (WorkflowElement nextWorkflow : nextWorkflows) {
-            if (nextWorkflow.getName().equals(workflowInstanceId)) {
-                return nextWorkflow;
-            }
-        }
-        return null;
-//        }
-    }
+
 
     @Override
     public void terminateVM(VirtualMachine virtualMachine) {
@@ -241,12 +201,12 @@ public class PlacementHelperImpl implements PlacementHelper {
         }
         virtualMachine.terminate();
 
-        virtualMachineDaoService.update(virtualMachine);
         ReportingAction report = new ReportingAction(new Date(), virtualMachine.getName(), VMAction.STOPPED);
         reportDaoService.save(report);
     }
 
-    private List<Element> getNextSteps(Element workflow) {           // TODO split into several methods
+    @Override
+    public List<Element> getNextSteps(Element workflow) {           // TODO split into several methods
         List<Element> nextSteps = new ArrayList<>();
         if (workflow instanceof ProcessStep) {
             if (!((ProcessStep) workflow).hasBeenExecuted() && ((ProcessStep) workflow).getStartDate() == null) {
@@ -329,7 +289,8 @@ public class PlacementHelperImpl implements PlacementHelper {
         return nextSteps;
     }
 
-    private void resetChilder(List<Element> elementList) {
+    @Override
+    public void resetChilder(List<Element> elementList) {
         if (elementList != null) {
             for (Element element : elementList) {
                 if (element instanceof ProcessStep) {

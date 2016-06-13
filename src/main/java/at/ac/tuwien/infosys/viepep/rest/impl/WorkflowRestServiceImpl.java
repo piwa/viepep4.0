@@ -1,7 +1,7 @@
 package at.ac.tuwien.infosys.viepep.rest.impl;
 
 import at.ac.tuwien.infosys.viepep.database.entities.*;
-import at.ac.tuwien.infosys.viepep.database.services.WorkflowDaoService;
+import at.ac.tuwien.infosys.viepep.database.inmemory.services.CacheWorkflowService;
 import at.ac.tuwien.infosys.viepep.reasoning.optimisation.impl.ProcessInstancePlacementProblemServiceImpl;
 import at.ac.tuwien.infosys.viepep.rest.WorkflowRestService;
 import lombok.extern.slf4j.Slf4j;
@@ -24,17 +24,17 @@ import java.util.Random;
 public class WorkflowRestServiceImpl implements WorkflowRestService {
 
     @Autowired
-    private WorkflowDaoService workflowDaoService;
+    private CacheWorkflowService cacheWorkflowService;
 
     @RequestMapping( value="/", method = RequestMethod.GET, consumes = MediaType.APPLICATION_XML_VALUE)
     public List<WorkflowElement> getWorkflows() throws Exception {
-        return workflowDaoService.getAllWorkflowElementsList();
+        return cacheWorkflowService.getAllWorkflowElements();
     }
 
     @Override
     @RequestMapping( value="/addWorkflowRequest", method = RequestMethod.POST, consumes = MediaType.APPLICATION_XML_VALUE)
     public void addWorkflow(@RequestBody WorkflowElement workflowElement) {
-        workflowDaoService.saveWorkflow(workflowElement);
+        cacheWorkflowService.addWorkflowInstance(workflowElement);
     }
 
     @Override
@@ -51,7 +51,7 @@ public class WorkflowRestServiceImpl implements WorkflowRestService {
                     element.setArrivedAt(date);
                     update(element);
                     log.info("add new WorkflowElement: " + element.toString());
-                    workflowDaoService.saveWorkflow(element);
+                    cacheWorkflowService.addWorkflowInstance(element);
                     log.info("Done: Add new WorkflowElement: " + element.toString());
                 }
             } catch (Exception ex) {

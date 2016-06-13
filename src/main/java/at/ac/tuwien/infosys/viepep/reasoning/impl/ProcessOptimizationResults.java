@@ -1,14 +1,14 @@
-package at.ac.tuwien.infosys.viepep.reasoning;
+package at.ac.tuwien.infosys.viepep.reasoning.impl;
 
 import at.ac.tuwien.infosys.viepep.database.entities.Element;
 import at.ac.tuwien.infosys.viepep.database.entities.ProcessStep;
 import at.ac.tuwien.infosys.viepep.database.entities.VirtualMachine;
 import at.ac.tuwien.infosys.viepep.database.entities.WorkflowElement;
-import at.ac.tuwien.infosys.viepep.database.services.ProcessStepDaoService;
-import at.ac.tuwien.infosys.viepep.database.services.VirtualMachineDaoService;
-import at.ac.tuwien.infosys.viepep.database.services.WorkflowDaoService;
+import at.ac.tuwien.infosys.viepep.database.inmemory.services.CacheVirtualMachineService;
+import at.ac.tuwien.infosys.viepep.database.inmemory.services.CacheWorkflowService;
 import at.ac.tuwien.infosys.viepep.reasoning.optimisation.PlacementHelper;
 import at.ac.tuwien.infosys.viepep.reasoning.optimisation.impl.ProcessInstancePlacementProblemServiceImpl;
+import at.ac.tuwien.infosys.viepep.reasoning.service.ServiceExecutionController;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.javailp.Result;
@@ -28,51 +28,38 @@ import java.util.List;
 @Component
 @Scope("prototype")
 @Setter
-public class ProcessResults {//implements Runnable {
+public class ProcessOptimizationResults {
 
     @Autowired
     private PlacementHelper placementHelper;
     @Autowired
-    private WorkflowDaoService workflowDaoService;
+    private ServiceExecutionController serviceExecutionController;
     @Autowired
-    private ProcessStepDaoService processStepDaoService;
+    private CacheVirtualMachineService cacheVirtualMachineService;
     @Autowired
-    private VirtualMachineDaoService virtualMachineDaoService;
-    @Autowired
-    private ProcessInvocation processInvocation;
-
-    private Result optimize;
-    private Date tau_t;
+    private CacheWorkflowService cacheWorkflowService;
 
     @Async
     public void processResults(Result optimize, Date tau_t) {
-        this.optimize = optimize;
-        this.tau_t = tau_t;
-/*
-        Thread thread = new Thread(this);
-        thread.start();
-    }
 
-    public void run() {
-*/        //start VMs
+        //start VMs
         List<VirtualMachine> vmsToStart = new ArrayList<>();
         //set steps to be scheduled
         List<ProcessStep> scheduledForExecution = new ArrayList<>();
         List<String> y = new ArrayList<>();
         StringBuilder stringBuilder2 = new StringBuilder();
-//        synchronized (this) {
+
         stringBuilder2.append("------------------------- VMs running ----------------------------\n");
-        List<VirtualMachine> virtualMachines = placementHelper.getVMs(false);
-        for(VirtualMachine vm : virtualMachines) {
+        List<VirtualMachine> vMs = cacheVirtualMachineService.getVMs();
+        for(VirtualMachine vm : vMs) {
             if(vm.isLeased() && vm.isStarted()) {
                 stringBuilder2.append(vm.toString()).append("\n");
             }
         }
 
-        List<WorkflowElement> allWorkflowInstances = placementHelper.getNextWorkflowInstances(false); //workflowDaoService.getAllWorkflowElementsList();
+        List<WorkflowElement> allWorkflowInstances = cacheWorkflowService.getRunningWorkflowInstances();
         stringBuilder2.append("------------------------ Tasks running ---------------------------\n");
-        List<VirtualMachine> vMs = placementHelper.getVMs(true);
-        List<ProcessStep> nextSteps = processStepDaoService.getUnfinishedSteps();//workflowDaoService.getUnfinishedSteps();
+        List<ProcessStep> nextSteps = placementHelper.getUnfinishedSteps();
         for (Element workflow : allWorkflowInstances) {
             List<Element> runningSteps = placementHelper.getRunningProcessSteps(workflow.getName());
             for (Element runningStep : runningSteps) {
@@ -81,13 +68,13 @@ public class ProcessResults {//implements Runnable {
                 }
             }
 
-            for (Element element : nextSteps) {
-                if (!((ProcessStep) element).getWorkflowName().equals(workflow.getName())) {
+            for (ProcessStep processStep : nextSteps) {
+                if (!processStep.getWorkflowName().equals(workflow.getName())) {
                     continue;
                 }
                 //check if step has to be started
                 for (VirtualMachine virtualMachine : vMs) {
-                    String x_v_k = "x_" + element.getName() + "," + virtualMachine.getName();
+                    String x_v_k = "x_" + processStep.getName() + "," + virtualMachine.getName();
                     String y_v_k = "y_" + virtualMachine.getName();
 
                     Number x_v_k_number = optimize.get(x_v_k);
@@ -102,7 +89,7 @@ public class ProcessResults {//implements Runnable {
                                 date = virtualMachine.getToBeTerminatedAt();
                             }
                             virtualMachine.setToBeTerminatedAt(new Date(date.getTime() + (ProcessInstancePlacementProblemServiceImpl.LEASING_DURATION * y_v_k_number.intValue())));
-                            virtualMachineDaoService.updateVM(virtualMachine);
+//                            virtualMachine = virtualMachineDaoService.updateVM(virtualMachine);
 
                         }
                     }
@@ -111,22 +98,19 @@ public class ProcessResults {//implements Runnable {
                         continue;
                     }
 
-
-                    ProcessStep processStep = (ProcessStep) element;
                     if (x_v_k_number.intValue() == 1 && !scheduledForExecution.contains(processStep) &&
                             processStep.getStartDate() == null) {
                         processStep.setScheduledForExecution(true, tau_t);
                         processStep.setScheduledAtVM(virtualMachine);
                         scheduledForExecution.add(processStep);
                         virtualMachine.setServiceType(processStep.getServiceType());
-//                        virtualMachine.addAssignedSteps(processStep);
                         if (!vmsToStart.contains(virtualMachine)) {
                             vmsToStart.add(virtualMachine);
                         }
                     }
                 }
             }
-//            }
+
         }
         stringBuilder2.append("-------------------------- y results -----------------------------\n");
         for (String s : y) {
@@ -146,13 +130,13 @@ public class ProcessResults {//implements Runnable {
         stringBuilder2.append("------------------------------------------------------------------\n");
         log.info(stringBuilder2.toString().replaceAll("(\r\n|\n)", "\r\n                                                                                                     "));
 
-        processInvocation.startInvocation(scheduledForExecution);
+        serviceExecutionController.startInvocation(scheduledForExecution);
 
         cleanupVMs(tau_t);
     }
 
     private void cleanupVMs(Date tau_t_0) {
-        List<VirtualMachine> vMs = placementHelper.getVMs(true);
+        List<VirtualMachine> vMs = cacheVirtualMachineService.getVMs();
         for (VirtualMachine vM : vMs) {
             if (vM.getToBeTerminatedAt() != null && vM.getToBeTerminatedAt().before((tau_t_0))) {
                 placementHelper.terminateVM(vM);

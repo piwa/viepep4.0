@@ -23,16 +23,19 @@ public abstract class NativeLibraryLoader {
      * List of native libraries you put in src/main/resources
      */
     static final String[] NATIVE_LIB_FILENAMES = {
-            "natives/libcplex1262.so", //is already x64
-//            "natives/libcplex1262_x64.so",
+            "natives/libcplex1262.jnilib",
+            "natives/libcplex1262.so",
             "natives/liblpsolve55.so",
             "natives/liblpsolve55j.so",
             "natives/liblpsolve55j_x64.so",
+            "natives/liblpsolve55.jnilib",
+            "natives/liblpsolve55j.jnilib",
+            "natives/liblpsolve55j_x64.jnilib",
     };
 
     static {
         try {
-//            System.loadLibrary("cplex1262");
+            System.loadLibrary("cplex1262");
 
             LOG.info("Loading from classpath successful");
             useCPLEX = true;
@@ -70,12 +73,15 @@ public abstract class NativeLibraryLoader {
             if (in != null) {
                 try {
                     LOG.info("Extracting " + filename);
-                    File destination = File.createTempFile(filename, ".so");
+                    String[] splitted = filename.split(Pattern.quote("."));
+                    String suffix = splitted[splitted.length-1];
+                    File destination = File.createTempFile(filename, "." + suffix);
                     FileUtils.copyInputStreamToFile(in, destination);
 
                     System.load(destination.getAbsolutePath());
                     if (filename.contains("cplex")) {
                         cplex = true;
+                        break;
                     }
                 } catch (IOException e) {
                     LOG.error("Can't extract " + filename, e);
