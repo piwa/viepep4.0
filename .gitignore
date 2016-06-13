@@ -13,3 +13,5 @@ hs_err_pid*
 viepep2.0.properties
 viepep-repo
 libcplex1262.so
+viepep4.0.properties
+mysql.properties
