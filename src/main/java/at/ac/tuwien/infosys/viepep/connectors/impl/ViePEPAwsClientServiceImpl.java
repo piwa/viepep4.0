@@ -25,6 +25,7 @@ public class ViePEPAwsClientServiceImpl implements ViePEPAwsClientService {
     private static String AWS_ACCESS_KEY = "CHANGE_ME";
     private static String AWS_DEFAULT_IMAGE = "CHANGE_ME";
     private static String AWS_DEFAULT_SUBNET = "CHANGE_ME";
+    private static String AWS_DEFAULT_REGION = "CHANGE_ME";
 
     private static AmazonEC2 ec2;
 
@@ -47,6 +48,7 @@ public class ViePEPAwsClientServiceImpl implements ViePEPAwsClientService {
             AWS_ACCESS_KEY = prop.getProperty("AWS_ACCESS_KEY");
             AWS_DEFAULT_IMAGE = prop.getProperty("AWS_DEFAULT_IMAGE");
             AWS_DEFAULT_SUBNET = prop.getProperty("AWS_DEFAULT_SUBNET");
+            AWS_DEFAULT_REGION = prop.getProperty("AWS_DEFAULT_REGION");
 
             if (AWS_ACCESS_KEY_ID.isEmpty() || AWS_ACCESS_KEY.isEmpty()) {
                 throw new Exception("Could not find variables ");
@@ -74,7 +76,7 @@ public class ViePEPAwsClientServiceImpl implements ViePEPAwsClientService {
         };
 
         ec2 = new AmazonEC2Client(credentials);
-        Region defaultRegion = Region.getRegion(Regions.US_EAST_1);
+        Region defaultRegion = Region.getRegion(Regions.fromName(AWS_DEFAULT_REGION));
         ec2.setRegion(defaultRegion);
 
         enabled = true;
