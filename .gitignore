@@ -15,3 +15,5 @@ viepep-repo
 libcplex1262.so
 viepep4.0.properties
 mysql.properties
+docker.properties
+ssh.properties

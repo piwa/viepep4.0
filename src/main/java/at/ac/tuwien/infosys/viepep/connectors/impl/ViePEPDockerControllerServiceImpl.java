@@ -1,14 +1,12 @@
 package at.ac.tuwien.infosys.viepep.connectors.impl;
 
 
-import at.ac.tuwien.infosys.viepep.connectors.ViePEPAwsClientService;
 import at.ac.tuwien.infosys.viepep.connectors.ViePEPDockerControllerService;
-import at.ac.tuwien.infosys.viepep.connectors.ViePEPOpenstackClientService;
 import at.ac.tuwien.infosys.viepep.connectors.ViePEPSSHConnector;
+import at.ac.tuwien.infosys.viepep.connectors.impl.exceptions.ContainerNotFoundException;
+import at.ac.tuwien.infosys.viepep.connectors.impl.exceptions.CouldNotStartDockerException;
 import at.ac.tuwien.infosys.viepep.connectors.impl.exceptions.CouldNotStopDockerException;
 import at.ac.tuwien.infosys.viepep.connectors.impl.exceptions.CouldResizeDockerException;
-import at.ac.tuwien.infosys.viepep.connectors.impl.exceptions.CouldNotStartDockerException;
-import at.ac.tuwien.infosys.viepep.connectors.impl.exceptions.ContainerNotFoundException;
 import at.ac.tuwien.infosys.viepep.database.entities.VirtualMachine;
 import at.ac.tuwien.infosys.viepep.database.entities.docker.DockerConfiguration;
 import at.ac.tuwien.infosys.viepep.database.entities.docker.DockerContainer;
@@ -39,17 +37,10 @@ public class ViePEPDockerControllerServiceImpl implements ViePEPDockerController
     private String defaultPort;
 
     @Autowired
-    private ViePEPAwsClientService awsClientService;
-    @Autowired
-    private ViePEPOpenstackClientService openstackClientService;
-    @Autowired
     private CacheDockerService cacheDockerService;
     @Autowired
     private ViePEPSSHConnector sshConnector;
 
-    public ViePEPDockerControllerServiceImpl() {
-
-    }
 
     @Override
     public void initialize() {

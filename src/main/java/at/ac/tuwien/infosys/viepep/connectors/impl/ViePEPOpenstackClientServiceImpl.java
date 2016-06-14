@@ -404,8 +404,8 @@ public class ViePEPOpenstackClientServiceImpl implements ViePEPOpenstackClientSe
     }
 
     private void printErrorMessage() {
-        log.info("\n-------------------------------------------------------------------------------------------");
-        log.info("\n------------Could no connect to openstack cloud, Cloud connector disabled------------------");
-        log.info("\n-------------------------------------------------------------------------------------------");
+        log.info("-------------------------------------------------------------------------------------------");
+        log.info("------------Could no connect to openstack cloud, Cloud connector disabled------------------");
+        log.info("-------------------------------------------------------------------------------------------");
     }
 }

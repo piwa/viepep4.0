@@ -19,9 +19,8 @@ public class CacheDockerService {
     private String repoName;
     @Value("${docker.image.name}")
     private String imageName;
-    @Value("${docker.type.amount}")
+
     private Integer D = 3; // how many docker types
-    @Value("${docker.type.config.amount}")
     private Integer C = 4; // different configurations of each docker type
 
 

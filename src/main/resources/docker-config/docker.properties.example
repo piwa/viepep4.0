@@ -1,4 +1,2 @@
 docker.repo.name= TODO insert path for your key here
 docker.image.name= TODO insert path for your key here
-docker.type.amount=3
-docker.type.config.amount=4

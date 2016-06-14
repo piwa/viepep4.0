@@ -11,6 +11,7 @@ import ilog.cplex.IloCplex;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.javailp.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -30,9 +31,12 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
     @Autowired
     private CacheWorkflowService cacheWorkflowService;
 
+    @Value("${optimization.use.internVms.first}")
+    private boolean useInternVmsFirst = true;           // has to be true that the internal storage is filled first
+
+
     private static final long SERVICE_DEPLOY_TIME = 40000L;
     public static final Object SYNC_OBJECT = "Sync_Lock";
-    private static final boolean BASELINE_RUN = false;           // has to be true that the internal storage is filled first
 
     private static final double EXTERNAL_CLOUD_FACTOR = 1000;
     private static long VM_STARTUP_TIME = 40000L;
@@ -907,7 +911,7 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
      * @return the costs for that VM
      */
     public double getCostForVM(int v) {
-        if (!BASELINE_RUN) {
+        if (!useInternVmsFirst) {
             return getVMType(v + 1).getCosts();
         }
         //only works under the assumption that there are the same vm types on the public cloud
