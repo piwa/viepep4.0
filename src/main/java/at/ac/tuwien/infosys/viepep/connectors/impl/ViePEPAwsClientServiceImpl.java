@@ -7,8 +7,7 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.FileInputStream;
@@ -17,9 +16,9 @@ import java.util.List;
 import java.util.Properties;
 
 @Component
+@Slf4j
 public class ViePEPAwsClientServiceImpl implements ViePEPAwsClientService {
 
-    private static final Logger LOG = (Logger) LoggerFactory.getLogger(ViePEPAwsClientServiceImpl.class);
     private static String propertyFile;
 
     private static String AWS_ACCESS_KEY_ID = "CHANGE_ME";
@@ -28,20 +27,10 @@ public class ViePEPAwsClientServiceImpl implements ViePEPAwsClientService {
     private static String AWS_DEFAULT_SUBNET = "CHANGE_ME";
 
     private static AmazonEC2 ec2;
-    private static ViePEPAwsClientServiceImpl instance;
 
-    public static ViePEPAwsClientServiceImpl getInstance() {
-        if (instance == null) {
-            instance = new ViePEPAwsClientServiceImpl();
-        }
-        return instance;
-    }
 
     private boolean enabled = false;
 
-    private ViePEPAwsClientServiceImpl() {
-
-    }
 
     private void loadSettings() {
         Properties prop = new Properties();
@@ -65,9 +54,7 @@ public class ViePEPAwsClientServiceImpl implements ViePEPAwsClientService {
         } catch (Exception e) {
             this.enabled = false;
         }
-        LOG.info("\n---------------------------------------------------------");
-        LOG.info("\n------------aws properties loaded------------------------");
-        LOG.info("\n---------------------------------------------------------");
+        log.info("------------ aws properties loaded ------------------------");
     }
 
     @Override
@@ -91,7 +78,7 @@ public class ViePEPAwsClientServiceImpl implements ViePEPAwsClientService {
         ec2.setRegion(defaultRegion);
 
         enabled = true;
-        LOG.info("autostartPEP-aws file loaded");
+        log.info("autostartPEP-aws file loaded");
     }
 
     @Override
@@ -156,7 +143,7 @@ public class ViePEPAwsClientServiceImpl implements ViePEPAwsClientService {
             for (Reservation rr : r.getReservations()) {
                 List<Instance> instances = rr.getInstances();
                 for (Instance instance : instances) {
-                    LOG.info("AWS instance " + instance.getInstanceId() + " and public IP " + instance.getPublicIpAddress() + " was started");
+                    log.info("AWS instance " + instance.getInstanceId() + " and public IP " + instance.getPublicIpAddress() + " was started");
                     if (instance.getState().getName().equals("running") && instance.getInstanceId().equals(instanceId)) {
                         return instance.getPublicIpAddress();
                     }

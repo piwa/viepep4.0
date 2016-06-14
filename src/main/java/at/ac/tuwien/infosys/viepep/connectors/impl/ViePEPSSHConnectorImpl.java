@@ -31,8 +31,6 @@ public class ViePEPSSHConnectorImpl implements ViePEPSSHConnector {
     private String SSH_PUB_KEY_PATH;
     private String SSH_PRIV_KEY_PATH;
 
-    public ViePEPSSHConnectorImpl() {
-    }
 
     @Override
     public void loadSettings() {
@@ -56,9 +54,7 @@ public class ViePEPSSHConnectorImpl implements ViePEPSSHConnector {
                 throw new Exception("Could not find variables ");
             }
         } catch (Exception e) {
-            log.error("\n------.-----------------------------------------------------------------------------");
-            log.error("\n--------ssh properties not load, docker resizing will not work----------------------");
-            log.error("\n------------------------------------------------------------------------------------");
+            log.error("-------- ssh properties not load, docker resizing will not work ----------------------");
             enabled = false;
 
         }

@@ -52,9 +52,6 @@ public class ViePEPOpenstackClientServiceImpl implements ViePEPOpenstackClientSe
     private Map<String, Flavor> availableFlavorMap = new HashMap<>();
     private boolean enabled = false;
 
-    private ViePEPOpenstackClientServiceImpl() {
-
-    }
     
     private void loadSettings() {
         Properties prop = new Properties();
@@ -90,9 +87,7 @@ public class ViePEPOpenstackClientServiceImpl implements ViePEPOpenstackClientSe
         } catch (Exception e) {
             this.enabled = false;
         }
-        log.info("\n---------------------------------------------------------");
-        log.info("\n--------openstack properties loaded----------------------");
-        log.info("\n---------------------------------------------------------");
+        log.info("-------- openstack properties loaded ----------------------");
     }
 
     public void init() {

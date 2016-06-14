@@ -18,6 +18,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @EnableScheduling
 @EnableAsync
 @PropertySources({
+        @PropertySource("classpath:docker-config/docker.properties"),
         @PropertySource("classpath:database-config/mysql.properties"),
         @PropertySource("classpath:application.properties")
 })
