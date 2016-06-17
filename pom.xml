@@ -24,7 +24,6 @@
 		<apache.common.version>2.5</apache.common.version>
 		<guava.version>19.0</guava.version>
 		<apache.httpcomponents>4.5.2</apache.httpcomponents>
-		<aws.api>1.10.73_1</aws.api>
 		<openstack.client>3.2.1</openstack.client>
 		<docker.client>3.5.12</docker.client>
 	</properties>
@@ -35,6 +34,18 @@
 			<url>file://${basedir}/viepep-repo</url>
 		</repository>
 	</repositories>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>com.amazonaws</groupId>
+				<artifactId>aws-java-sdk-bom</artifactId>
+				<version>1.11.8</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<dependencies>
 		<dependency>
@@ -159,9 +170,8 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.apache.servicemix.bundles</groupId>
-			<artifactId>org.apache.servicemix.bundles.aws-java-sdk</artifactId>
-			<version>${aws.api}</version>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>aws-java-sdk-ec2</artifactId>
 		</dependency>
 
 		<dependency>

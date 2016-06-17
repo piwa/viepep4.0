@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.FileInputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -29,8 +30,9 @@ public class ViePEPAwsClientServiceImpl implements ViePEPAwsClientService {
 
     private static AmazonEC2 ec2;
 
-
+    private static List<String> SYNCLIST = Collections.synchronizedList(new ArrayList<>());
     private boolean enabled = false;
+    private static String SYNC_OBJECT = "sync_lock";
 
 
     private void loadSettings() {
@@ -92,8 +94,9 @@ public class ViePEPAwsClientServiceImpl implements ViePEPAwsClientService {
 
     @Override
     public boolean terminateInstanceByIP(String localeAddress) {
-        terminateInstanceByID(getVMIdByIP(localeAddress));
-        return waitForStatus(getVMIdByIP(localeAddress), "terminated", 100);
+        String instanceId = getVMIdByIP(localeAddress);
+        terminateInstanceByID(instanceId);
+        return waitForStatus(instanceId, "terminated", 100);
     }
 
     @Override
@@ -124,12 +127,21 @@ public class ViePEPAwsClientServiceImpl implements ViePEPAwsClientService {
         ec2.runInstances(runInstancesRequest);
 
         String instanceId = null;
-        DescribeInstancesResult result = ec2.describeInstances();
-        for (Reservation r : result.getReservations()) {
-            List<Instance> instances = r.getInstances();
-            for (Instance ii : instances) {
-                if (ii.getState().getName().equals("pending")) {
-                    instanceId = ii.getInstanceId();
+        synchronized (SYNC_OBJECT) {
+            DescribeInstancesResult result = ec2.describeInstances();
+            for (Reservation r : result.getReservations()) {
+                List<Instance> instances = r.getInstances();
+                for (Instance ii : instances) {
+                    if (ii.getState().getName().equals("pending") && !SYNCLIST.contains(ii.getInstanceId())) {
+                        log.info("Select pending instance for service " + serviceName + ": " + ii.toString());
+                        instanceId = ii.getInstanceId();
+                        SYNCLIST.add(instanceId);
+                        break;
+                    }
+                }
+
+                if(instanceId != null) {
+                    break;
                 }
             }
         }
@@ -145,8 +157,9 @@ public class ViePEPAwsClientServiceImpl implements ViePEPAwsClientService {
             for (Reservation rr : r.getReservations()) {
                 List<Instance> instances = rr.getInstances();
                 for (Instance instance : instances) {
-                    log.info("AWS instance " + instance.getInstanceId() + " and public IP " + instance.getPublicIpAddress() + " was started");
-                    if (instance.getState().getName().equals("running") && instance.getInstanceId().equals(instanceId)) {
+                    if (instance.getState().getName().equals("running") && instance.getInstanceId().equals(instanceId) && instance.getPublicIpAddress() != null) {
+                        log.info("AWS instance " + instance.getInstanceId() + " and public IP " + instance.getPublicIpAddress() + " was started");
+                        SYNCLIST.remove(instanceId);
                         return instance.getPublicIpAddress();
                     }
                 }

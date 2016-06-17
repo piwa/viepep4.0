@@ -28,36 +28,21 @@ public class WorkflowDaoService {
     @Autowired
     private VirtualMachineDaoService virtualMachineDaoService;
 
-
-
     public WorkflowElement finishWorkflow(WorkflowElement workflow) {
         log.info("-- Update workflowElement: " + workflow.toString());
 
         List<Element> flattedWorkflow = placementHelperImpl.getFlattenWorkflow(new ArrayList<>(), workflow);
-        Date finishedDate = null;
-        for(Element element : flattedWorkflow) {
-            if(element instanceof ProcessStep && element.isLastElement()) {
-                if(element.getFinishedAt() != null) {
-                    if(finishedDate == null) {
-                        finishedDate = element.getFinishedAt();
-                    }
-                    else if(element.getFinishedAt().after(finishedDate)) {
-                        finishedDate = element.getFinishedAt();
-                    }
-                }
-            }
-        }
+        Date finishedDate = getFinishedDate(flattedWorkflow);
 
         workflow.setFinishedAt(finishedDate);
         for(Element element : flattedWorkflow) {
             if (element.getFinishedAt() == null) {
-                element.setFinishedAt(workflow.getFinishedAt());
+                element.setFinishedAt(workflow.getFinishedAt());            // TODO can be deleted?
             }
             if(element instanceof ProcessStep) {
 
                 VirtualMachine vm = ((ProcessStep) element).getScheduledAtVM();
-                if(vm != null) {                    // if the process step is after an XOR the process steps on one side of the XOR are not used
-                    log.info(vm.toString());
+                if(vm != null) {                    // if the process step is after an XOR the process steps on one side of the XOR are not executed
                     if(vm.getId() != null) {
                         vm = virtualMachineDaoService.getVm(vm);
                         ((ProcessStep) element).setScheduledAtVM(vm);
@@ -73,6 +58,23 @@ public class WorkflowDaoService {
 
         }
         return workflowElementRepository.save(workflow);
+    }
+
+    private Date getFinishedDate(List<Element> flattedWorkflow) {
+        Date finishedDate = null;
+        for(Element element : flattedWorkflow) {
+            if(element instanceof ProcessStep && element.isLastElement()) {
+                if(element.getFinishedAt() != null) {
+                    if(finishedDate == null) {
+                        finishedDate = element.getFinishedAt();
+                    }
+                    else if(element.getFinishedAt().after(finishedDate)) {
+                        finishedDate = element.getFinishedAt();
+                    }
+                }
+            }
+        }
+        return finishedDate;
     }
 
 

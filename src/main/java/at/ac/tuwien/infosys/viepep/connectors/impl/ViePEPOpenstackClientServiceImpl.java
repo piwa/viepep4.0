@@ -222,8 +222,8 @@ public class ViePEPOpenstackClientServiceImpl implements ViePEPOpenstackClientSe
             printErrorMessage();
             return false;
         }
-        String vmIdByID = getVMIdByIP(localUrl);
-        return terminateInstanceByID(vmIdByID);
+        String vmIdByIP = getVMIdByIP(localUrl);
+        return terminateInstanceByID(vmIdByIP);
     }
 
     @Override

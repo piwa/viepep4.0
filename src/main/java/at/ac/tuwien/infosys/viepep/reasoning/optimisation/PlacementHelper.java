@@ -33,5 +33,5 @@ public interface PlacementHelper {
 
     List<Element> getNextSteps(Element workflow);
 
-    void resetChilder(List<Element> elementList);
+    void resetChildren(List<Element> elementList);
 }

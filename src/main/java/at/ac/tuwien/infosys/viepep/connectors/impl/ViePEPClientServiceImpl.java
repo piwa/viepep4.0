@@ -4,12 +4,14 @@ package at.ac.tuwien.infosys.viepep.connectors.impl;
 import at.ac.tuwien.infosys.viepep.connectors.ViePEPAwsClientService;
 import at.ac.tuwien.infosys.viepep.connectors.ViePEPClientService;
 import at.ac.tuwien.infosys.viepep.connectors.ViePEPOpenstackClientService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Component
 public class ViePEPClientServiceImpl implements ViePEPClientService {
     @Autowired
@@ -28,9 +30,15 @@ public class ViePEPClientServiceImpl implements ViePEPClientService {
 
     @Override
     public boolean terminateInstanceByIP(String localeAddress) {
-        if (!openstackClientService.terminateInstanceByIP(localeAddress)) {
-            return awsClientService.terminateInstanceByIP(localeAddress);
+        boolean resultOpenstack = openstackClientService.terminateInstanceByIP(localeAddress);
+        if (!resultOpenstack) {
+            boolean result = awsClientService.terminateInstanceByIP(localeAddress);
+            if(result) {
+                log.info("AWS EC2 VM with the IP " + localeAddress + " terminated");
+            }
+            return result;
         } else {
+            log.info("OpenStack VM with the IP " + localeAddress + " terminated");
             return true;
         }
     }
@@ -45,19 +53,12 @@ public class ViePEPClientServiceImpl implements ViePEPClientService {
 
     @Override
     public String startNewVM(String name, String flavorName, String serviceName, String location) {
-        if ((flavorName.substring(0, 2).equals("m1")) || (flavorName.substring(0, 2).equals("m2"))) {
+        if (location.equals("internal")) {
             return openstackClientService.startNewVM(name, flavorName, serviceName);
-        } else {
-            if (flavorName.substring(0, 2).equals("m3")) {
-                return awsClientService.startNewVM(name, flavorName, serviceName, location);
-            }
+        } else if (location.equals("aws")) {
+            return awsClientService.startNewVM(name, flavorName, serviceName, location);
         }
         return null;
-    }
-
-    @Override
-    public String startNewVM(String name, String flavorName, String serviceName) {
-        return startNewVM(name, flavorName, serviceName, "");
     }
 
     @Override

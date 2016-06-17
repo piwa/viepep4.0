@@ -44,7 +44,7 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
     private static final double OMEGA_F_C_VALUE = 0.001;
 
     private Date tau_t;
-    private static final long TIMESLOT_DURATION = 30 * 1000 * 4; //timeslot duration is minimum 1 minute
+    private static final long TIMESLOT_DURATION = 30 * 1000 * 1; //timeslot duration is minimum 1 minute
     public static final long LEASING_DURATION = 60 * 1000 * 5; //timeslot duration is minimum 5 minutes
 
     private int V = 0;
@@ -148,7 +148,7 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
                 @Override
                 public void call(IloCplex cplex, Map<Object, IloNumVar> varToNum) {
                     try {
-                        cplex.setParam(IloCplex.DoubleParam.TiLim, 60);
+                        cplex.setParam(IloCplex.DoubleParam.TiLim, 20);  //60           // TODO should this be set to TIMESLOT_DURATION - 10? To abort the solution finding
                     } catch (IloException e) {
                         e.printStackTrace();
                     }
@@ -885,7 +885,6 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
     private List<Element> getNextSteps(Element workflow) {
         List<Element> list = new ArrayList<>();
         if (!nextSteps.containsKey(workflow.getName())) {
-//            log.info("getNextSteps finishWorkflow");
             List<Element> nextSteps1 = Collections.synchronizedList(new ArrayList<Element>(placementHelper.getNextSteps(workflow.getName())));
             nextSteps.put(workflow.getName(), nextSteps1);
         }
@@ -899,7 +898,6 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
      */
     public List<Element> getRunningSteps(String workflowInstanceID) {
         if (!runningSteps.containsKey(workflowInstanceID)) {
-//            log.info("getRunningSteps finishWorkflow");
             List<Element> runningProcessSteps = Collections.synchronizedList(new ArrayList<Element>(placementHelper.getRunningProcessSteps(workflowInstanceID)));
             runningSteps.put(workflowInstanceID, runningProcessSteps);
         }

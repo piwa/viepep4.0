@@ -32,18 +32,6 @@ public interface ViePEPClientService {
      */
     String startNewVM(String name, String flavorName, String serviceName, String location);
 
-
-    /**
-     * starts a new VM without any location preference
-     *
-     * @param name          of the new VM
-     * @param flavorName    the VM flavor
-     * @param serviceName   the service which should be deployed on default
-     * @return              the address of newly started VM
-     */
-    String startNewVM(String name, String flavorName, String serviceName);
-
-
     /**
      * @param private IP
      * @return true if vm is running, otherwise false

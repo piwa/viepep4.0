@@ -9,7 +9,6 @@ import at.ac.tuwien.infosys.viepep.database.inmemory.services.CacheWorkflowServi
 import at.ac.tuwien.infosys.viepep.reasoning.optimisation.PlacementHelper;
 import at.ac.tuwien.infosys.viepep.reasoning.optimisation.impl.ProcessInstancePlacementProblemServiceImpl;
 import at.ac.tuwien.infosys.viepep.reasoning.service.ServiceExecutionController;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.javailp.Result;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +26,6 @@ import java.util.List;
 @Slf4j
 @Component
 @Scope("prototype")
-@Setter
 public class ProcessOptimizationResults {
 
     @Autowired
@@ -60,58 +58,9 @@ public class ProcessOptimizationResults {
         List<WorkflowElement> allWorkflowInstances = cacheWorkflowService.getRunningWorkflowInstances();
         stringBuilder2.append("------------------------ Tasks running ---------------------------\n");
         List<ProcessStep> nextSteps = placementHelper.getUnfinishedSteps();
-        for (Element workflow : allWorkflowInstances) {
-            List<Element> runningSteps = placementHelper.getRunningProcessSteps(workflow.getName());
-            for (Element runningStep : runningSteps) {
-                if(((ProcessStep) runningStep).getScheduledAtVM().isStarted()) {
-                    stringBuilder2.append("Task-Running: ").append(runningStep).append("\n");
-                }
-            }
 
-            for (ProcessStep processStep : nextSteps) {
-                if (!processStep.getWorkflowName().equals(workflow.getName())) {
-                    continue;
-                }
-                //check if step has to be started
-                for (VirtualMachine virtualMachine : vMs) {
-                    String x_v_k = "x_" + processStep.getName() + "," + virtualMachine.getName();
-                    String y_v_k = "y_" + virtualMachine.getName();
+        getRunningTasks(optimize, tau_t, vmsToStart, scheduledForExecution, y, stringBuilder2, vMs, allWorkflowInstances, nextSteps);
 
-                    Number x_v_k_number = optimize.get(x_v_k);
-                    Number y_v_k_number = optimize.get(y_v_k);
-
-                    if (!y.contains(y_v_k)) {
-                        y.add(y_v_k);
-                        if (y_v_k_number.intValue() >= 1) {
-                            vmsToStart.add(virtualMachine);
-                            Date date = new Date();
-                            if (virtualMachine.getToBeTerminatedAt() != null) {
-                                date = virtualMachine.getToBeTerminatedAt();
-                            }
-                            virtualMachine.setToBeTerminatedAt(new Date(date.getTime() + (ProcessInstancePlacementProblemServiceImpl.LEASING_DURATION * y_v_k_number.intValue())));
-//                            virtualMachine = virtualMachineDaoService.updateVM(virtualMachine);
-
-                        }
-                    }
-
-                    if (x_v_k_number == null || x_v_k_number.intValue() == 0) {
-                        continue;
-                    }
-
-                    if (x_v_k_number.intValue() == 1 && !scheduledForExecution.contains(processStep) &&
-                            processStep.getStartDate() == null) {
-                        processStep.setScheduledForExecution(true, tau_t);
-                        processStep.setScheduledAtVM(virtualMachine);
-                        scheduledForExecution.add(processStep);
-                        virtualMachine.setServiceType(processStep.getServiceType());
-                        if (!vmsToStart.contains(virtualMachine)) {
-                            vmsToStart.add(virtualMachine);
-                        }
-                    }
-                }
-            }
-
-        }
         stringBuilder2.append("-------------------------- y results -----------------------------\n");
         for (String s : y) {
             stringBuilder2.append(s).append("=").append(optimize.get(s)).append("\n");
@@ -135,6 +84,73 @@ public class ProcessOptimizationResults {
         cleanupVMs(tau_t);
     }
 
+    private void getRunningTasks(Result optimize, Date tau_t, List<VirtualMachine> vmsToStart, List<ProcessStep> scheduledForExecution, List<String> y, StringBuilder stringBuilder2, List<VirtualMachine> vMs, List<WorkflowElement> allWorkflowInstances, List<ProcessStep> nextSteps) {
+        for (Element workflow : allWorkflowInstances) {
+            List<Element> runningSteps = placementHelper.getRunningProcessSteps(workflow.getName());
+            for (Element runningStep : runningSteps) {
+                if(((ProcessStep) runningStep).getScheduledAtVM().isStarted()) {
+                    stringBuilder2.append("Task-Running: ").append(runningStep).append("\n");
+                }
+            }
+
+            for (ProcessStep processStep : nextSteps) {
+                if (!processStep.getWorkflowName().equals(workflow.getName())) {
+                    continue;
+                }
+
+                processXYValues(optimize, tau_t, vmsToStart, scheduledForExecution, y, vMs, processStep);
+            }
+
+        }
+    }
+
+    /**
+     * Check if step has to be started
+     * @param optimize
+     * @param tau_t
+     * @param vmsToStart
+     * @param scheduledForExecution
+     * @param y
+     * @param vMs
+     * @param processStep
+     */
+    private void processXYValues(Result optimize, Date tau_t, List<VirtualMachine> vmsToStart, List<ProcessStep> scheduledForExecution, List<String> y, List<VirtualMachine> vMs, ProcessStep processStep) {
+        for (VirtualMachine virtualMachine : vMs) {
+            String x_v_k = "x_" + processStep.getName() + "," + virtualMachine.getName();
+            String y_v_k = "y_" + virtualMachine.getName();
+
+            Number x_v_k_number = optimize.get(x_v_k);
+            Number y_v_k_number = optimize.get(y_v_k);
+
+            if (!y.contains(y_v_k)) {
+                y.add(y_v_k);
+                if (y_v_k_number.intValue() >= 1) {
+                    vmsToStart.add(virtualMachine);
+                    Date date = new Date();
+                    if (virtualMachine.getToBeTerminatedAt() != null) {
+                        date = virtualMachine.getToBeTerminatedAt();
+                    }
+                    virtualMachine.setToBeTerminatedAt(new Date(date.getTime() + (ProcessInstancePlacementProblemServiceImpl.LEASING_DURATION * y_v_k_number.intValue())));
+                }
+            }
+
+            if (x_v_k_number == null || x_v_k_number.intValue() == 0) {
+                continue;
+            }
+
+            if (x_v_k_number.intValue() == 1 && !scheduledForExecution.contains(processStep) &&
+                    processStep.getStartDate() == null) {
+                processStep.setScheduledForExecution(true, tau_t);
+                processStep.setScheduledAtVM(virtualMachine);
+                scheduledForExecution.add(processStep);
+                virtualMachine.setServiceType(processStep.getServiceType());
+                if (!vmsToStart.contains(virtualMachine)) {
+                    vmsToStart.add(virtualMachine);
+                }
+            }
+        }
+    }
+
     private void cleanupVMs(Date tau_t_0) {
         List<VirtualMachine> vMs = cacheVirtualMachineService.getVMs();
         for (VirtualMachine vM : vMs) {
@@ -143,7 +159,5 @@ public class ProcessOptimizationResults {
             }
         }
     }
-
-
 
 }

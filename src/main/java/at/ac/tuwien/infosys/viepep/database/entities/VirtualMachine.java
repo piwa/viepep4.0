@@ -134,6 +134,7 @@ public class VirtualMachine implements Serializable {
                 ", startedAt=" + startString +
                 ", terminateAt=" + toBeTerminatedAtString +
                 ", location=" + location +
+                ", ip adress=" + ipAddress +
                 '}';
     }
 

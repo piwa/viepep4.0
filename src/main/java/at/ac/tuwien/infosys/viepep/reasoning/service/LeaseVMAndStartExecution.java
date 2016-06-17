@@ -5,7 +5,6 @@ import at.ac.tuwien.infosys.viepep.database.entities.ProcessStep;
 import at.ac.tuwien.infosys.viepep.database.entities.ReportingAction;
 import at.ac.tuwien.infosys.viepep.database.entities.VMAction;
 import at.ac.tuwien.infosys.viepep.database.entities.VirtualMachine;
-import at.ac.tuwien.infosys.viepep.database.services.ProcessStepDaoService;
 import at.ac.tuwien.infosys.viepep.database.services.ReportDaoService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,8 +30,6 @@ public class LeaseVMAndStartExecution {
     @Autowired
     private ViePEPClientService viePEPClientService;
     @Autowired
-    private ProcessStepDaoService processStepDaoService;
-    @Autowired
     private ServiceExecution serviceExecution;
 
     @Value("${simulate}")
@@ -41,7 +38,7 @@ public class LeaseVMAndStartExecution {
     private long startupTime;
 
     @Async
-    public void leaseVMAndStartExecution(VirtualMachine virtualMachine, List<ProcessStep> processSteps1) {
+    public void leaseVMAndStartExecution(VirtualMachine virtualMachine, List<ProcessStep> processSteps) {
 
         final StopWatch stopWatch = new StopWatch();
         stopWatch.start();
@@ -54,7 +51,8 @@ public class LeaseVMAndStartExecution {
                 e.printStackTrace();
             }
         } else {
-            address = viePEPClientService.startNewVM(virtualMachine.getName(), virtualMachine.getVmType().flavor(), virtualMachine.getServiceType().name());
+            address = viePEPClientService.startNewVM(virtualMachine.getName(), virtualMachine.getVmType().flavor(), virtualMachine.getServiceType().name(), virtualMachine.getVmType().getLocation());
+            log.info("VM up and running with ip: " + address + " vm: " + virtualMachine);
             try {
                 Thread.sleep(startupTime); //sleep 15 seconds, since as soon as it is up, it still has to deploy the services
             } catch (InterruptedException e) {
@@ -67,13 +65,11 @@ public class LeaseVMAndStartExecution {
         reportDaoService.save(report);
 
         if (address == null) {
-            log.error("VM was not started, reset task: " + virtualMachine.getName());
-            List<ProcessStep> processStepList = processStepDaoService.findByVM(virtualMachine);     // TODO is processStepList = processSteps1?
-            for(ProcessStep processStep : processStepList) {
+            log.error("VM " + virtualMachine.getName() + " was not started, reset task");
+            for(ProcessStep processStep : processSteps) {
                 processStep.setStartDate(null);
                 processStep.setScheduled(false);
                 processStep.setScheduledAtVM(null);
-//                processStepDaoService.finishWorkflow(processStep);
             }
             return;
         } else {
@@ -83,7 +79,7 @@ public class LeaseVMAndStartExecution {
             virtualMachine.setStarted(true);
             virtualMachine.setIpAddress(address);
 
-            startExecutions(processSteps1, virtualMachine);
+            startExecutions(processSteps, virtualMachine);
 
         }
     }

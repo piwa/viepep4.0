@@ -74,8 +74,7 @@ public class ViePEPDockerControllerServiceImpl implements ViePEPDockerController
             }
             List<String> names = container.names();
 
-            DockerImage dockerImage = null;
-            cacheDockerService.parseByAppId(names.get(0));
+            DockerImage dockerImage = cacheDockerService.parseByAppId(names.get(0));
             if (dockerImage == null) {
                 log.info(image + " Unknown image ID ");
                 continue;

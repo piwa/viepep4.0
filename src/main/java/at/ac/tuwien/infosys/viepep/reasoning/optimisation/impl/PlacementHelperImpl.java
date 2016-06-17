@@ -7,6 +7,7 @@ import at.ac.tuwien.infosys.viepep.database.inmemory.services.CacheWorkflowServi
 import at.ac.tuwien.infosys.viepep.database.services.ElementDaoService;
 import at.ac.tuwien.infosys.viepep.database.services.ReportDaoService;
 import at.ac.tuwien.infosys.viepep.reasoning.optimisation.PlacementHelper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -17,6 +18,7 @@ import java.util.*;
  * Created by philippwaibel on 18/05/16.
  */
 @Component
+@Slf4j
 public class PlacementHelperImpl implements PlacementHelper {
 
     @Autowired
@@ -159,14 +161,12 @@ public class PlacementHelperImpl implements PlacementHelper {
     @Override
     public List<Element> getRunningSteps(boolean update) {
         List<Element> running = new ArrayList<>();
-        for (WorkflowElement allWorkflowInstance : cacheWorkflowService.getAllWorkflowElements()) {     // TODO use getNextWorkflowInstances?
+        for (WorkflowElement allWorkflowInstance : cacheWorkflowService.getRunningWorkflowInstances()) {//cacheWorkflowService.getAllWorkflowElements()) {     // TODO use getNextWorkflowInstances?
             running.addAll(getRunningProcessSteps(allWorkflowInstance.getElements()));
         }
 
         return running;
     }
-
-
 
     @Override
     public List<Element> getRunningProcessSteps(List<Element> elements) {
@@ -178,9 +178,7 @@ public class PlacementHelperImpl implements PlacementHelper {
                         steps.add(element);
                     }
                 }
-                else {
-                    //ignore
-                }
+                // ignore else
             }
             else {
                 steps.addAll(getRunningProcessSteps(element.getElements()));
@@ -190,13 +188,10 @@ public class PlacementHelperImpl implements PlacementHelper {
         return steps;
     }
 
-
-
-
-
     @Override
     public void terminateVM(VirtualMachine virtualMachine) {
         if (!simulate) {
+            log.info("Terminate: " + virtualMachine);
             viePEPClientService.terminateInstanceByIP(virtualMachine.getIpAddress());
         }
         virtualMachine.terminate();
@@ -206,7 +201,7 @@ public class PlacementHelperImpl implements PlacementHelper {
     }
 
     @Override
-    public List<Element> getNextSteps(Element workflow) {           // TODO split into several methods
+    public List<Element> getNextSteps(Element workflow) {
         List<Element> nextSteps = new ArrayList<>();
         if (workflow instanceof ProcessStep) {
             if (!((ProcessStep) workflow).hasBeenExecuted() && ((ProcessStep) workflow).getStartDate() == null) {
@@ -265,7 +260,7 @@ public class PlacementHelperImpl implements PlacementHelper {
                                 if (lastElement && loopConstruct.getNumberOfIterationsInWorstCase() > loopConstruct.getIterations() && rand) {
                                     loopConstruct.setIterations(loopConstruct.getIterations() + 1);
                                     nextSteps.add(elementList.get(0));
-                                    resetChilder(elementList);
+                                    resetChildren(elementList);
 
                                     elementDaoService.update(workflow);
                                     return nextSteps;
@@ -290,7 +285,7 @@ public class PlacementHelperImpl implements PlacementHelper {
     }
 
     @Override
-    public void resetChilder(List<Element> elementList) {
+    public void resetChildren(List<Element> elementList) {
         if (elementList != null) {
             for (Element element : elementList) {
                 if (element instanceof ProcessStep) {
@@ -298,7 +293,7 @@ public class PlacementHelperImpl implements PlacementHelper {
 
                 }
                 else {
-                    resetChilder(element.getElements());
+                    resetChildren(element.getElements());
                 }
             }
         }

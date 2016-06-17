@@ -5,7 +5,6 @@ import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 
@@ -42,10 +41,6 @@ public class XORConstruct extends Element {
 
     @Override
     public ProcessStep getLastExecutedElement() {
-        List<Element> allChildren = new ArrayList<>();
-//        for (Element element : elements) {
-//        allChildren.addAll(elements.get(0).getElements());//TODO chose correct one
-//        }
         Element nextXOR = getParent().getNextXOR();
         if (nextXOR != null) {
             return (ProcessStep) nextXOR.getLastExecutedElement();
