@@ -148,7 +148,7 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
                 @Override
                 public void call(IloCplex cplex, Map<Object, IloNumVar> varToNum) {
                     try {
-                        cplex.setParam(IloCplex.DoubleParam.TiLim, 20);  //60           // TODO should this be set to TIMESLOT_DURATION - 10? To abort the solution finding
+                        cplex.setParam(IloCplex.DoubleParam.TiLim, (TIMESLOT_DURATION / 1000) - 10);  //60
                     } catch (IloException e) {
                         e.printStackTrace();
                     }
