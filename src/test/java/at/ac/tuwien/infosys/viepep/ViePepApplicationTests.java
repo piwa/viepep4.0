@@ -8,6 +8,7 @@ import at.ac.tuwien.infosys.viepep.database.entities.docker.DockerConfiguration;
 import at.ac.tuwien.infosys.viepep.database.entities.docker.DockerContainer;
 import at.ac.tuwien.infosys.viepep.database.entities.docker.DockerImage;
 import com.spotify.docker.client.messages.ContainerInfo;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,17 @@ public class ViePepApplicationTests {
 	@Autowired
 	private ViePEPDockerControllerService dockerControllerService;
 
+	private static boolean setUpIsDone = false;
+
+	@Before
+	public void initOpenStackClient() {
+		if (setUpIsDone) {
+			return;
+		}
+		viePEPOpenstackClient.init();
+
+		setUpIsDone = true;
+	}
 
 	@Test
 	public void testStartNewVM_AddContainer_ResizeContainer_Terminate() throws Exception {

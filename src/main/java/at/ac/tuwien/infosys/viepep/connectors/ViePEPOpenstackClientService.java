@@ -8,6 +8,8 @@ import java.util.List;
  * Created by Philipp Hoenisch on 5/7/14.
  */
 public interface ViePEPOpenstackClientService {
+    void init();
+
     /**
      * @param instanceId to be terminated
      * if service is not found, the command is just ignored

@@ -90,6 +90,7 @@ public class ViePEPOpenstackClientServiceImpl implements ViePEPOpenstackClientSe
         log.info("-------- openstack properties loaded ----------------------");
     }
 
+    @Override
     public void init() {
         loadSettings();
         JerseyConnector connector = new JerseyConnector();
@@ -404,8 +405,8 @@ public class ViePEPOpenstackClientServiceImpl implements ViePEPOpenstackClientSe
     }
 
     private void printErrorMessage() {
-        log.info("-------------------------------------------------------------------------------------------");
-        log.info("------------Could no connect to openstack cloud, Cloud connector disabled------------------");
-        log.info("-------------------------------------------------------------------------------------------");
+        log.info("---------------------------------------------------------------------------------------------");
+        log.info("------------ Could no connect to openstack cloud, Cloud connector disabled ------------------");
+        log.info("---------------------------------------------------------------------------------------------");
     }
 }
