@@ -3,6 +3,7 @@ package at.ac.tuwien.infosys.viepep;
 import at.ac.tuwien.infosys.viepep.connectors.ViePEPAwsClientService;
 import at.ac.tuwien.infosys.viepep.connectors.impl.ViePEPOpenstackClientServiceImpl;
 import at.ac.tuwien.infosys.viepep.reasoning.ReasoningActivator;
+import at.ac.tuwien.infosys.viepep.reasoning.impl.GertaOptimizer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,11 +27,15 @@ public class CommandLineListener implements CommandLineRunner {
     private ViePEPOpenstackClientServiceImpl viePEPOpenstackClientService;
     @Autowired
     private ViePEPAwsClientService viePEPAwsClientService;
+    @Autowired
+    private GertaOptimizer gertaOptimizer;
 
     @Value("${simulate}")
     private boolean simulate;
     @Value("${autostart}")
     private boolean autostart;
+    @Value("${use.gerta.optimizer}")
+    private boolean useGertaOptimizer;
 
     public void run(String... args) {
         log.info("Starting ViePEP 4.0...");
@@ -52,10 +57,7 @@ public class CommandLineListener implements CommandLineRunner {
             reasoningActivatorImpl.initialize();
 
             if(autostart) {
-                Future<Boolean> reasoningDone = reasoningActivatorImpl.start();
-                while(!reasoningDone.isDone()) {
-                    Thread.sleep(10000);
-                }
+                startReasoning();
             }
             else {
                 while (running) {
@@ -68,7 +70,7 @@ public class CommandLineListener implements CommandLineRunner {
                         case "start":
                             if (!started) {
                                 started = true;
-                                reasoningActivatorImpl.start();
+                                startReasoning();
                             }
                             break;
                         case "stop":
@@ -84,6 +86,34 @@ public class CommandLineListener implements CommandLineRunner {
         } finally {
             log.info("Terminating....");
             System.exit(1);
+        }
+    }
+
+
+
+    private void startReasoning() {
+        try {
+            //TODO: GERTA: remove and/or rewrite this
+
+            if (useGertaOptimizer) {
+                gertaOptimizer.startOptimation();
+            } else {
+                if(autostart) {
+                    Future<Boolean> reasoningDone = reasoningActivatorImpl.start();
+                    while(!reasoningDone.isDone()) {
+                        Thread.sleep(10000);
+                    }
+                }
+                else {
+                    reasoningActivatorImpl.start();
+                }
+            }
+
+        } catch (Exception e) {
+            System.out.println("Could not start Reasoning Activator Database done \n " +
+                    "-------------------------------------- ....");
+            e.printStackTrace();
+
         }
     }
 }
