@@ -52,7 +52,7 @@ public class ViePepApplicationTests {
 	@Autowired
 	private WorkflowElementRepository workflowElementRepository;
 
-	
+	@Ignore
 	@Test
 	public void testStartNewOpenStackVM_AddContainer_ResizeContainer_Terminate() throws Exception {
 		viePEPOpenstackClient.initialize();
