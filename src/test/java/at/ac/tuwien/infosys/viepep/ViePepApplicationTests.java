@@ -2,11 +2,12 @@ package at.ac.tuwien.infosys.viepep;
 
 import at.ac.tuwien.infosys.viepep.connectors.ViePEPDockerControllerService;
 import at.ac.tuwien.infosys.viepep.connectors.ViePEPOpenstackClientService;
-import at.ac.tuwien.infosys.viepep.database.entities.VMType;
-import at.ac.tuwien.infosys.viepep.database.entities.VirtualMachine;
+import at.ac.tuwien.infosys.viepep.database.entities.*;
 import at.ac.tuwien.infosys.viepep.database.entities.docker.DockerConfiguration;
 import at.ac.tuwien.infosys.viepep.database.entities.docker.DockerContainer;
 import at.ac.tuwien.infosys.viepep.database.entities.docker.DockerImage;
+import at.ac.tuwien.infosys.viepep.database.repositories.WorkflowElementRepository;
+import at.ac.tuwien.infosys.viepep.database.services.WorkflowDaoService;
 import com.spotify.docker.client.messages.ContainerInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
@@ -21,7 +22,10 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
+import java.util.Date;
+
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -42,6 +46,10 @@ public class ViePepApplicationTests {
 	private ViePEPOpenstackClientService viePEPOpenstackClient;
 	@Autowired
 	private ViePEPDockerControllerService dockerControllerService;
+	@Autowired
+	private WorkflowDaoService workflowDaoService;
+	@Autowired
+	private WorkflowElementRepository workflowElementRepository;
 
 	private static boolean setUpIsDone = false;
 
@@ -96,6 +104,35 @@ public class ViePepApplicationTests {
 
 
 
+	}
+
+
+	@Test
+	public void persistWorkflow_ShouldPersistWorkflow() {
+
+		WorkflowElement workflowElement = createFinishedWorkflow();
+		workflowElement.setFinishedAt(new Date());
+		workflowElement = workflowDaoService.finishWorkflow(workflowElement);
+		WorkflowElement workflowFromDatabase = workflowElementRepository.findOne(workflowElement.getId());
+		assertNotNull(workflowFromDatabase);
+	}
+
+
+	private WorkflowElement createFinishedWorkflow() {
+		String name = "finishedWorkflow";
+		WorkflowElement workflow = new WorkflowElement(name, (new Date()).getTime() + 10000);
+		Sequence seq = new Sequence(name + "-seq");
+		ProcessStep elem1 = new ProcessStep(name + ".1", ServiceType.Task1, workflow.getName());
+		seq.addElement(elem1);
+		ProcessStep elem2 = new ProcessStep(name + ".2", ServiceType.Task2, workflow.getName());
+		seq.addElement(elem2);
+		ProcessStep elem = new ProcessStep(name + ".3", ServiceType.Task3, workflow.getName());
+		elem.setLastElement(true);
+		elem.setFinishedAt(new Date());
+		seq.addElement(elem);
+		workflow.addElement(seq);
+
+		return workflow;
 	}
 
 }
