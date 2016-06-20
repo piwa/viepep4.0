@@ -72,6 +72,8 @@ public class ViePepApplicationTests {
 		//  virtualMachine.setIpAddress("128.130.172.226"); //TODO change this manualy if run from outside of the cloud,
 		// but make sure to assign this IP to the VM you just created
 
+		Thread.sleep(30 * 1000);
+
 		dockerContainer = dockerControllerService.startDocker(virtualMachine, dockerContainer);
 
 		//collect some docker information
