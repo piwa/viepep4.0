@@ -1,5 +1,6 @@
 package at.ac.tuwien.infosys.viepep;
 
+import at.ac.tuwien.infosys.viepep.connectors.ViePEPAwsClientService;
 import at.ac.tuwien.infosys.viepep.connectors.ViePEPDockerControllerService;
 import at.ac.tuwien.infosys.viepep.connectors.ViePEPOpenstackClientService;
 import at.ac.tuwien.infosys.viepep.database.entities.*;
@@ -10,7 +11,7 @@ import at.ac.tuwien.infosys.viepep.database.repositories.WorkflowElementReposito
 import at.ac.tuwien.infosys.viepep.database.services.WorkflowDaoService;
 import com.spotify.docker.client.messages.ContainerInfo;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,9 +26,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import java.util.Date;
 
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = ViePepApplication.class)
@@ -45,27 +44,19 @@ public class ViePepApplicationTests {
 	@Autowired
 	private ViePEPOpenstackClientService viePEPOpenstackClient;
 	@Autowired
+	private ViePEPAwsClientService viePEPAwsClientService;
+	@Autowired
 	private ViePEPDockerControllerService dockerControllerService;
 	@Autowired
 	private WorkflowDaoService workflowDaoService;
 	@Autowired
 	private WorkflowElementRepository workflowElementRepository;
 
-	private static boolean setUpIsDone = false;
-
-	@Before
-	public void initOpenStackClient() {
-		if (setUpIsDone) {
-			return;
-		}
+	
+	@Test
+	public void testStartNewOpenStackVM_AddContainer_ResizeContainer_Terminate() throws Exception {
 		viePEPOpenstackClient.initialize();
 		dockerControllerService.initialize();
-
-		setUpIsDone = true;
-	}
-
-	@Test
-	public void testStartNewVM_AddContainer_ResizeContainer_Terminate() throws Exception {
 		//starting a new VM instance
 		//exampleService can be ignored
 		String testVMIp = viePEPOpenstackClient.startNewVM("testVM", VMType.DUAL_CORE.flavor(), "exampleService");
@@ -82,6 +73,51 @@ public class ViePepApplicationTests {
 		virtualMachine.setIpAddress(testVMIp);
 		//  virtualMachine.setIpAddress("128.130.172.226"); //TODO change this manualy if run from outside of the cloud,
 		// but make sure to assign this IP to the VM you just created
+
+		Thread.sleep(30 * 1000);
+
+		log.info("VM running, start docker...");
+		dockerContainer = dockerControllerService.startDocker(virtualMachine, dockerContainer);
+
+		//collect some docker information
+		ContainerInfo dockerInfo = dockerControllerService.getDockerInfo(virtualMachine, dockerContainer);
+		assertThat(dockerInfo, notNullValue());
+
+		log.info("Docker running, change docker config...");
+		//change docker configuration
+		dockerContainer.setContainerConfiguration(DockerConfiguration.DUAL_CORE);
+		dockerContainer = dockerControllerService.resizeContainer(virtualMachine, dockerContainer);
+
+		log.info("Docker config changed, stop docker...");
+		//stop docker
+		boolean b = dockerControllerService.stopDocker(virtualMachine, dockerContainer);
+		assertTrue(b);
+
+
+
+	}
+
+	@Ignore
+	@Test
+	public void testStartNewAWSVM_AddContainer_ResizeContainer_Terminate() throws Exception {
+
+		viePEPAwsClientService.initialize();
+		dockerControllerService.initialize();
+
+		//starting a new VM instance
+		//exampleService can be ignored
+		String testVMIp = viePEPAwsClientService.startNewVM("testVM", VMType.AWS_SINGLE_CORE.flavor(), "exampleService", "eu-central-1");
+		assertThat(testVMIp, notNullValue());
+
+		//starting a new docker container
+		DockerImage dockerImage = new DockerImage("exampleApp", "bonomat", "nodejs-hello-world", 8090, 3000);
+		//DockerImage dockerImage = new DockerImage("exampleApp", "bonomat", "viepep-backend-services", 8080, 8080);
+		DockerConfiguration dockerConfiguration = DockerConfiguration.SINGLE_CORE;
+
+		DockerContainer dockerContainer = new DockerContainer(dockerImage, dockerConfiguration);
+
+		VirtualMachine virtualMachine = new VirtualMachine("dummyVM", VMType.AWS_SINGLE_CORE);
+		virtualMachine.setIpAddress(testVMIp);
 
 		Thread.sleep(30 * 1000);
 

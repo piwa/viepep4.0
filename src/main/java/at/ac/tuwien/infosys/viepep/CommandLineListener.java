@@ -46,7 +46,7 @@ public class CommandLineListener implements CommandLineRunner {
 
             if(!simulate) {
                 viePEPOpenstackClientService.initialize();
-                viePEPAwsClientService.init();
+                viePEPAwsClientService.initialize();
             }
 
             reasoningActivatorImpl.initialize();

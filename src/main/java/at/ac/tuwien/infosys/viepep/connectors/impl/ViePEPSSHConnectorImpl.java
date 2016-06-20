@@ -28,8 +28,8 @@ public class ViePEPSSHConnectorImpl implements ViePEPSSHConnector {
     private String SSH_USER_NAME;
 
     private boolean enabled = true;
-    private String SSH_PUB_KEY_PATH;
-    private String SSH_PRIV_KEY_PATH;
+    private String SSH_OPENSTACK_KEY_PATH;
+    private String SSH_AWS_KEY_PATH;
 
     @Override
     public void initialize() {
@@ -50,11 +50,11 @@ public class ViePEPSSHConnectorImpl implements ViePEPSSHConnector {
                 prop.load(getClass().getClassLoader().getResourceAsStream(propertyFile));
             }
 
-            SSH_PUB_KEY_PATH = prop.getProperty("public-key.path");
-            SSH_PRIV_KEY_PATH = prop.getProperty("private-key.path");
+            SSH_OPENSTACK_KEY_PATH = prop.getProperty("openstack-key.path");
+            SSH_AWS_KEY_PATH = prop.getProperty("aws-key.path");
             SSH_USER_NAME = prop.getProperty("ssh.username");
 
-            if (SSH_PUB_KEY_PATH.isEmpty() || SSH_PRIV_KEY_PATH.isEmpty()) {
+            if (SSH_OPENSTACK_KEY_PATH.isEmpty() || SSH_AWS_KEY_PATH.isEmpty()) {
                 throw new Exception("Could not find variables ");
             }
         } catch (Exception e) {
@@ -76,7 +76,12 @@ public class ViePEPSSHConnectorImpl implements ViePEPSSHConnector {
         String[] result = new String[2];
         try {
 
-            jsch.addIdentity(SSH_PRIV_KEY_PATH);
+            if(vm.getLocation().equals("internal")) {
+                jsch.addIdentity(SSH_OPENSTACK_KEY_PATH);
+            }
+            else {
+                jsch.addIdentity(SSH_AWS_KEY_PATH);
+            }
 
             Session session = jsch.getSession(SSH_USER_NAME, vm.getIpAddress(), 22);
             session.setConfig("StrictHostKeyChecking", "no");

@@ -62,7 +62,7 @@ public class ViePEPAwsClientServiceImpl implements ViePEPAwsClientService {
     }
 
     @Override
-    public void init() {
+    public void initialize() {
         loadSettings();
 
         AWSCredentials credentials = new AWSCredentials() {

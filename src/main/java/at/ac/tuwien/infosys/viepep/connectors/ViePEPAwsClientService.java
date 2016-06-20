@@ -6,7 +6,7 @@ import java.util.List;
  * Created by Philipp Hoenisch on 5/7/14.
  */
 public interface ViePEPAwsClientService {
-    void init();
+    void initialize();
 
     /**
      * @param instanceId to be terminated
