@@ -45,6 +45,7 @@ public class ViePEPDockerControllerServiceImpl implements ViePEPDockerController
     @Override
     public void initialize() {
         loadProperties();
+        sshConnector.initialize();
     }
 
     @Override

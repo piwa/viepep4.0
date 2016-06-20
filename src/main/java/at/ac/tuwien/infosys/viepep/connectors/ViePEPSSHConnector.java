@@ -17,5 +17,7 @@ public interface ViePEPSSHConnector {
      */
     String[] execSSHCommand(VirtualMachine vm, String command) throws Exception;
 
+    void initialize();
+
     void loadSettings();
 }

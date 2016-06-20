@@ -31,6 +31,10 @@ public class ViePEPSSHConnectorImpl implements ViePEPSSHConnector {
     private String SSH_PUB_KEY_PATH;
     private String SSH_PRIV_KEY_PATH;
 
+    @Override
+    public void initialize() {
+        loadSettings();
+    }
 
     @Override
     public void loadSettings() {
@@ -58,9 +62,9 @@ public class ViePEPSSHConnectorImpl implements ViePEPSSHConnector {
             enabled = false;
 
         }
-        log.info("\n--------------------------------------------------------------");
-        log.info("\n--------ssh properties properties loaded----------------------");
-        log.info("\n--------------------------------------------------------------");
+        log.info("----------------------------------------------------------------");
+        log.info("----------- ssh properties properties loaded -------------------");
+        log.info("----------------------------------------------------------------");
     }
 
     @Override
