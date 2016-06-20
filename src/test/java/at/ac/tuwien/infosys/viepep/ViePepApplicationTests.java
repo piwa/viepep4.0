@@ -47,7 +47,8 @@ public class ViePepApplicationTests {
 		if (setUpIsDone) {
 			return;
 		}
-		viePEPOpenstackClient.init();
+		viePEPOpenstackClient.initialize();
+		dockerControllerService.initialize();
 
 		setUpIsDone = true;
 	}

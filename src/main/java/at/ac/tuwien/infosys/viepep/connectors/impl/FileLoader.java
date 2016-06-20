@@ -4,7 +4,7 @@ import org.apache.commons.io.IOUtils;
 
 /**
  * <p/>
- * this is an init script to initializeAndUpdate a node in our swarm,
+ * this is an initialize script to initializeAndUpdate a node in our swarm,
  * check on that node for output with:
  * journalctl -b -u oem-cloudinit.service --no-pager
  * if something failed
@@ -12,7 +12,7 @@ import org.apache.commons.io.IOUtils;
  * systemctl status docker.service
  * systemctl status docker-tcp.socket
  * systemctl status docker-swarm.service
- * global cloud-init info
+ * global cloud-initialize info
  * journalctl _EXE=/usr/bin/coreos-cloudinit
  */
 public class FileLoader {
@@ -37,7 +37,7 @@ public class FileLoader {
                     "UTF-8"
             );
         } catch (Exception e) {
-            System.err.println("Could not load cloud-init config");
+            System.err.println("Could not load cloud-initialize config");
             CLOUD_INIT = "";
         }
     }

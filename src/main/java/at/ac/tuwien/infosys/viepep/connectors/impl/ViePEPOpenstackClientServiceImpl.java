@@ -91,7 +91,7 @@ public class ViePEPOpenstackClientServiceImpl implements ViePEPOpenstackClientSe
     }
 
     @Override
-    public void init() {
+    public void initialize() {
         loadSettings();
         JerseyConnector connector = new JerseyConnector();
 

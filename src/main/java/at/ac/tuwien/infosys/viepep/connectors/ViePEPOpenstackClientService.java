@@ -8,7 +8,7 @@ import java.util.List;
  * Created by Philipp Hoenisch on 5/7/14.
  */
 public interface ViePEPOpenstackClientService {
-    void init();
+    void initialize();
 
     /**
      * @param instanceId to be terminated

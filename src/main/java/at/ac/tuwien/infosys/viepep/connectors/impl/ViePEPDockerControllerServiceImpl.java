@@ -131,8 +131,7 @@ public class ViePEPDockerControllerServiceImpl implements ViePEPDockerController
             final String containerName = getContainerName(dockerContainer);
 
             try {
-                final ContainerCreation creation = dockerClient.createContainer(config,
-                        containerName);
+                final ContainerCreation creation = dockerClient.createContainer(config, containerName);
                 id = creation.id();
             } catch (DockerRequestException ex) {
                 if (ex.message().contains("already in use")) {
@@ -159,7 +158,7 @@ public class ViePEPDockerControllerServiceImpl implements ViePEPDockerController
 
         } catch (Exception e) {
             //ignore
-            log.info("could not start container " + virtualMachine.getName() + " message:  " + e.getMessage());
+            log.error("could not start container " + virtualMachine.getName(), e);
         }
 
         return dockerContainer;
@@ -266,16 +265,16 @@ public class ViePEPDockerControllerServiceImpl implements ViePEPDockerController
             DOCKER_RESIZE_SCRIPT = FileLoader.getInstance().DOCKER_RESIZE_SCRIPT;
 
         } catch (Exception e) {
-            log.error("\n-------------------------------------------------------" +
-                    "\n------------docker properties not loaded-----------------" +
-                    "\n---------------------------------------------------------" +
-                    "\n--- /src/resources/docker-swarm.properties is missing ---" +
-                    "\n---------------------------------------------------------");
+            log.error("-----------------------------------------------------------" +
+                      "------------ docker properties not loaded -----------------" +
+                      "-----------------------------------------------------------" +
+                      "---- /src/resources/docker-swarm.properties is missing ----" +
+                      "-----------------------------------------------------------");
 
         }
-        log.info("\n---------------------------------------------------------" +
-                "\n--------docker properties properties loaded---------------" +
-                "\n----------------------------------------------------------");
+        log.info("------------------------------------------------------------" +
+                 "---------- docker properties properties loaded -------------" +
+                 "------------------------------------------------------------");
     }
 
 }
