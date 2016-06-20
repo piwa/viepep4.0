@@ -60,7 +60,7 @@ public class ViePepApplicationTests {
 		assertThat(testVMIp, notNullValue());
 
 		//starting a new docker container
-		DockerImage dockerImage = new DockerImage("exampleApp", "viepep", "nodejs-hello-world", 8090, 3000);
+		DockerImage dockerImage = new DockerImage("exampleApp", "bonomat", "nodejs-hello-world", 8090, 3000);
 		//DockerImage dockerImage = new DockerImage("exampleApp", "bonomat", "viepep-backend-services", 8080, 8080);
 		DockerConfiguration dockerConfiguration = DockerConfiguration.SINGLE_CORE;
 
