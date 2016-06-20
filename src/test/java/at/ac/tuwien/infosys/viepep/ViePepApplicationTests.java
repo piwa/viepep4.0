@@ -8,6 +8,7 @@ import at.ac.tuwien.infosys.viepep.database.entities.docker.DockerConfiguration;
 import at.ac.tuwien.infosys.viepep.database.entities.docker.DockerContainer;
 import at.ac.tuwien.infosys.viepep.database.entities.docker.DockerImage;
 import com.spotify.docker.client.messages.ContainerInfo;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,6 +23,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = ViePepApplication.class)
@@ -29,6 +31,7 @@ import static org.junit.Assert.assertThat;
 @IntegrationTest("server.port:0")
 @TestPropertySource(properties = {"simulation = true", "autostart = false"})
 @ActiveProfiles("test")
+@Slf4j
 public class ViePepApplicationTests {
 
 
@@ -74,18 +77,23 @@ public class ViePepApplicationTests {
 
 		Thread.sleep(30 * 1000);
 
+		log.info("VM running, start docker...");
 		dockerContainer = dockerControllerService.startDocker(virtualMachine, dockerContainer);
 
 		//collect some docker information
 		ContainerInfo dockerInfo = dockerControllerService.getDockerInfo(virtualMachine, dockerContainer);
 		assertThat(dockerInfo, notNullValue());
 
+		log.info("Docker running, change docker config...");
 		//change docker configuration
 		dockerContainer.setContainerConfiguration(DockerConfiguration.DUAL_CORE);
 		dockerContainer = dockerControllerService.resizeContainer(virtualMachine, dockerContainer);
 
+		log.info("Docker config changed, stop docker...");
 		//stop docker
 		boolean b = dockerControllerService.stopDocker(virtualMachine, dockerContainer);
+		assertTrue(b);
+
 
 
 	}
