@@ -20,18 +20,20 @@ public class CacheWorkflowService {
     private InMemoryCacheImpl inMemoryCache;
 
 
-    public synchronized List<WorkflowElement> getRunningWorkflowInstances() {
-        List<WorkflowElement> workflows = Collections.synchronizedList(inMemoryCache.getRunningWorkflows());
-        List<WorkflowElement> returnList = new ArrayList<>();
-        Iterator<WorkflowElement> iterator = workflows.iterator();
-        while(iterator.hasNext()) {
-            WorkflowElement workflow = iterator.next();
-            if(workflow.getFinishedAt() == null) {
-                returnList.add(workflow);
+    public List<WorkflowElement> getRunningWorkflowInstances() {
+        synchronized (inMemoryCache.getRunningWorkflows()) {
+            List<WorkflowElement> workflows = Collections.synchronizedList(inMemoryCache.getRunningWorkflows());
+            List<WorkflowElement> returnList = new ArrayList<>();
+            Iterator<WorkflowElement> iterator = workflows.iterator();
+            while (iterator.hasNext()) {
+                WorkflowElement workflow = iterator.next(); // TODO rerun if: java.util.ConcurrentModificationException: null
+                if (workflow.getFinishedAt() == null) {
+                    returnList.add(workflow);
+                }
             }
-        }
 
-        return returnList;
+            return returnList;
+        }
     }
 
 
@@ -42,7 +44,9 @@ public class CacheWorkflowService {
 
 
     public void deleteRunningWorkflowInstance(WorkflowElement workflowElement) {
-        inMemoryCache.getRunningWorkflows().remove(workflowElement);
+        synchronized (inMemoryCache.getRunningWorkflows()) {
+            Collections.synchronizedList(inMemoryCache.getRunningWorkflows()).remove(workflowElement);
+        }
     }
 
 
