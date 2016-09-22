@@ -45,7 +45,7 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
 
     private Date tau_t;
     private static final long TIMESLOT_DURATION = 30 * 1000 * 1; //timeslot duration is minimum 1 minute
-    public static final long LEASING_DURATION = 60 * 1000 * 5; //timeslot duration is minimum 5 minutes
+    public static final long LEASING_DURATION = 60 * 1000 * 5;   //leasing duration is minimum 5 minutes
 
     private int V = 0;
     private int K = 0;

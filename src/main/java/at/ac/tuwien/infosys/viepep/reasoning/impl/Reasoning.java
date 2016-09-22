@@ -141,7 +141,7 @@ public class Reasoning {
         log.info("---------tau_t_0 : " + tau_t_0 + " ------------------------");
         log.info("---------tau_t_0.time : " + tau_t_0_time + " ------------------------");
         tau_t_0 = new Date();
-        Result optimize = resourcePredictionService.optimize(tau_t_0);
+        Result optimize = resourcePredictionService.optimize(tau_t_0);          // TODO call the optimization also at specific events (e.g. a new workflow is added)
 
         if (optimize == null) {
             throw new Exception("Could not solve the Problem");
@@ -150,13 +150,16 @@ public class Reasoning {
         log.info("Objective: " + optimize.getObjective());
         long tau_t_1 = optimize.get("tau_t_1").longValue() * 1000;//VERY IMPORTANT,
         long difference = tau_t_1 - new Date().getTime();
-        log.info("---------sleep for: " + difference / 1000 + " seconds-----------");
-        log.info("---------next iteration: " + new Date(tau_t_1) + " -----------");
         if (difference < 0) {
             difference = 0;
         }
+        log.info("---------sleep for: " + difference / 1000 + " seconds-----------");
+        log.info("---------next iteration: " + new Date(tau_t_1) + " -----------");
+
         final Result finalOptimize = optimize;
         final Date finalTau_t_ = tau_t_0;
+
+
 
         processOptimizationResults.processResults(finalOptimize, finalTau_t_);
 

@@ -17,3 +17,8 @@ viepep4.0.properties
 mysql.properties
 docker.properties
 ssh.properties
+.idea
+*.iml
+target
+libcplex1262.jnilib
+log
