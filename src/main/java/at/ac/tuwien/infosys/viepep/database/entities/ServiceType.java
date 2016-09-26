@@ -1,8 +1,11 @@
 package at.ac.tuwien.infosys.viepep.database.entities;
 
+import lombok.Getter;
+
 /**
  * Created by Philipp Hoenisch on 6/16/14.
  */
+@Getter
 public enum ServiceType {
 
     Task1("task1", 50, 450, 1000 * 40, 2, false),

@@ -7,9 +7,7 @@ import at.ac.tuwien.infosys.viepep.database.entities.docker.DockerImage;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by philippwaibel on 10/06/16.
@@ -19,7 +17,7 @@ public class InMemoryCacheImpl {
     private List<WorkflowElement> runningWorkflows = new ArrayList<>();
     private List<WorkflowElement> allWorkflowInstances = new ArrayList<>();
     private List<VirtualMachine> virtualMachines = new ArrayList<>();
-    private Map<DockerContainer, List<DockerContainer>> dockerMap = new HashMap<>();
+    private List<DockerContainer> dockerContainers = new ArrayList<>();
     private List<DockerImage> dockerImageList = new ArrayList<>();
 
 
@@ -27,7 +25,7 @@ public class InMemoryCacheImpl {
         virtualMachines = new ArrayList<>();
         runningWorkflows = new ArrayList<>();
         allWorkflowInstances = new ArrayList<>();
-        dockerMap = new HashMap<>();
+        dockerContainers = new ArrayList<>();
         dockerImageList = new ArrayList<>();
     }
 
@@ -55,8 +53,8 @@ public class InMemoryCacheImpl {
         allWorkflowInstances.add(workflowElement);
     }
 
-    public Map<DockerContainer, List<DockerContainer>> getDockerMap() {
-        return dockerMap;
+    public List<DockerContainer> getDockerContainers() {
+        return dockerContainers;
     }
 
     public List<DockerImage> getDockerImageList() {
@@ -67,7 +65,7 @@ public class InMemoryCacheImpl {
         dockerImageList.add(dockerImage);
     }
 
-    public void addToDockerMap(DockerContainer key, List<DockerContainer> dockerContainerList) {
-        dockerMap.put(key, dockerContainerList);
+    public void addToDockerContainerList(DockerContainer dockerContainer) {
+        dockerContainers.add(dockerContainer);
     }
 }

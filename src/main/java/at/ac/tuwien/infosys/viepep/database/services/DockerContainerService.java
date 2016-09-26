@@ -6,13 +6,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * Created by philippwaibel on 13/06/16.
  */
-public class DockerContainerRepository {
+public class DockerContainerService {
 
     @Autowired
-    private DockerContainerRepository dockerContainerRepository;
+    private DockerContainerService dockerContainerService;
 
     public DockerContainer save(DockerContainer dockerContainer) {
-        return dockerContainerRepository.save(dockerContainer);
+        return dockerContainerService.save(dockerContainer);
     }
 
 }

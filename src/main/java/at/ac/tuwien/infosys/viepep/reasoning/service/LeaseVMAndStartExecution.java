@@ -3,7 +3,7 @@ package at.ac.tuwien.infosys.viepep.reasoning.service;
 import at.ac.tuwien.infosys.viepep.connectors.ViePEPClientService;
 import at.ac.tuwien.infosys.viepep.database.entities.ProcessStep;
 import at.ac.tuwien.infosys.viepep.database.entities.ReportingAction;
-import at.ac.tuwien.infosys.viepep.database.entities.VMAction;
+import at.ac.tuwien.infosys.viepep.database.entities.VMDockerAction;
 import at.ac.tuwien.infosys.viepep.database.entities.VirtualMachine;
 import at.ac.tuwien.infosys.viepep.database.services.ReportDaoService;
 import lombok.extern.slf4j.Slf4j;
@@ -61,7 +61,7 @@ public class LeaseVMAndStartExecution {
         }
 
 
-        ReportingAction report =  new ReportingAction(new Date(), virtualMachine.getName(), VMAction.START);
+        ReportingAction report =  new ReportingAction(new Date(), virtualMachine.getName(), VMDockerAction.START);
         reportDaoService.save(report);
 
         if (address == null) {

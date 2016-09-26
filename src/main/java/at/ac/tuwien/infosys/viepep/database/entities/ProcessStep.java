@@ -1,6 +1,7 @@
 package at.ac.tuwien.infosys.viepep.database.entities;
 
 
+import at.ac.tuwien.infosys.viepep.database.entities.docker.DockerContainer;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -40,6 +41,9 @@ public class ProcessStep extends Element {
 
     @ManyToOne//(cascade = CascadeType.ALL)
     private VirtualMachine scheduledAtVM;
+
+    @ManyToOne//(cascade = CascadeType.ALL)
+    private DockerContainer scheduledAtDocker;
 
     private String workflowName;
 

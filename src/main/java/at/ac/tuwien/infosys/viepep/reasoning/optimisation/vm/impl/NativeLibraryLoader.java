@@ -1,4 +1,4 @@
-package at.ac.tuwien.infosys.viepep.reasoning.optimisation.impl;
+package at.ac.tuwien.infosys.viepep.reasoning.optimisation.vm.impl;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;

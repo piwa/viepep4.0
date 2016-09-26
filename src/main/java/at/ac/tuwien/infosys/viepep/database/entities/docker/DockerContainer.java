@@ -1,14 +1,19 @@
 package at.ac.tuwien.infosys.viepep.database.entities.docker;
 
 import at.ac.tuwien.infosys.viepep.database.entities.VirtualMachine;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.persistence.*;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
  */
-
+@Getter
+@Setter
 @Entity
 @Table(name = "DockerContainer")
 public class DockerContainer {
@@ -32,6 +37,14 @@ public class DockerContainer {
     private long deployTime;
     private long deployCost = 3;
     private String containerID;
+    private String ipAddress;
+
+    private long startupTime = 60000L;
+    private boolean deployed;
+    private Date startedAt;
+    private boolean started;
+    private boolean canBeTermianted;
+    private Date toBeTerminatedAt;
 
     public DockerContainer() {
     }
@@ -107,80 +120,8 @@ public class DockerContainer {
         return containerConfiguration.name() + "_" + this.dockerImage.getAppId();
     }
 
-    public DockerConfiguration getContainerConfiguration() {
-        return containerConfiguration;
-    }
-
     public String getAppID() {
         return this.dockerImage.getAppId();
-    }
-
-    public int getAmountOfPossibleInvocations() {
-        return amountOfPossibleInvocations;
-    }
-
-    public long getExecutionTime() {
-        return executionTime;
-    }
-
-    public long getDeployTime() {
-        return deployTime;
-    }
-
-    public long getDeployCost() {
-        return deployCost;
-    }
-
-    public DockerImage getDockerImage() {
-        return dockerImage;
-    }
-
-    public String getContainerID() {
-        return containerID;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public void setContainerConfiguration(DockerConfiguration containerConfiguration) {
-        this.containerConfiguration = containerConfiguration;
-    }
-
-    public void setDockerImage(DockerImage dockerImage) {
-        this.dockerImage = dockerImage;
-    }
-
-    public void setAmountOfPossibleInvocations(int amountOfPossibleInvocations) {
-        this.amountOfPossibleInvocations = amountOfPossibleInvocations;
-    }
-
-    public void setExecutionTime(long executionTime) {
-        this.executionTime = executionTime;
-    }
-
-    public void setDeployTime(long deployTime) {
-        this.deployTime = deployTime;
-    }
-
-    public void setDeployCost(long deployCost) {
-        this.deployCost = deployCost;
-    }
-
-    public void setContainerID(String containerID) {
-        this.containerID = containerID;
-    }
-
-    public List<VirtualMachine> getVirtualMachines() {
-        return virtualMachines;
-    }
-
-    public void setVirtualMachines(List<VirtualMachine> virtualMachine) {
-        this.virtualMachines = virtualMachine;
     }
 
     public void addVirtualMachine(VirtualMachine virtualMachine) {
@@ -188,6 +129,32 @@ public class DockerContainer {
             virtualMachines = new ArrayList<>();
         }
         virtualMachines.add(virtualMachine);
+    }
 
+    public void terminate() {
+        this.setCanBeTermianted(false);
+        this.setStarted(false);
+        this.setStartedAt(null);
+        this.setToBeTerminatedAt(null);
+    }
+
+    @Override
+    public String toString() {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+        String startString = startedAt == null ? "NOT_YET" : simpleDateFormat.format(startedAt);
+        String toBeTerminatedAtString = toBeTerminatedAt == null ? "NOT_YET" : simpleDateFormat.format(toBeTerminatedAt);
+        return "DockerContainer{" +
+                "id=" + id +
+                ", name='" + getName() + '\'' +
+                ", appId=" + this.dockerImage.getAppId() +
+                ", startedAt=" + startString +
+                ", terminateAt=" + toBeTerminatedAtString +
+                ", ip adress=" + ipAddress +
+                '}';
+    }
+
+    public String getURI() {
+        return "http://" + this.ipAddress;
     }
 }

@@ -1,8 +1,9 @@
-package at.ac.tuwien.infosys.viepep.reasoning.optimisation;
+package at.ac.tuwien.infosys.viepep.reasoning.optimisation.general;
 
 import at.ac.tuwien.infosys.viepep.database.entities.Element;
 import at.ac.tuwien.infosys.viepep.database.entities.ProcessStep;
 import at.ac.tuwien.infosys.viepep.database.entities.VirtualMachine;
+import at.ac.tuwien.infosys.viepep.database.entities.docker.DockerContainer;
 
 import java.util.Date;
 import java.util.List;
@@ -34,4 +35,6 @@ public interface PlacementHelper {
     List<Element> getNextSteps(Element workflow);
 
     void resetChildren(List<Element> elementList);
+
+    void terminateDockerContainer(DockerContainer dockerContainer);
 }

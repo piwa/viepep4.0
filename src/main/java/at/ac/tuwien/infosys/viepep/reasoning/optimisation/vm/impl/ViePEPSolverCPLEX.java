@@ -1,4 +1,4 @@
-package at.ac.tuwien.infosys.viepep.reasoning.optimisation.impl;
+package at.ac.tuwien.infosys.viepep.reasoning.optimisation.vm.impl;
 
 import ilog.concert.IloException;
 import ilog.concert.IloLinearNumExpr;

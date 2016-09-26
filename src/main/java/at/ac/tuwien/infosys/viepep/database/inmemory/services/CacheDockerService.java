@@ -1,10 +1,13 @@
 package at.ac.tuwien.infosys.viepep.database.inmemory.services;
 
+import at.ac.tuwien.infosys.viepep.database.entities.docker.DockerContainer;
 import at.ac.tuwien.infosys.viepep.database.entities.docker.DockerImage;
 import at.ac.tuwien.infosys.viepep.database.inmemory.database.InMemoryCacheImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * Created by philippwaibel on 13/06/16.
@@ -63,6 +66,10 @@ public class CacheDockerService {
             return parseByImageName("app3");
         }
         return parseByImageName("app0");
+    }
+
+    public List<DockerContainer> getDockerContainers() {
+        return inMemoryCache.getDockerContainers();
     }
 
 }

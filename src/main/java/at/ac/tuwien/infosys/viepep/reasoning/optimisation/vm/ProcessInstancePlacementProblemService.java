@@ -1,4 +1,4 @@
-package at.ac.tuwien.infosys.viepep.reasoning.optimisation;
+package at.ac.tuwien.infosys.viepep.reasoning.optimisation.vm;
 
 import at.ac.tuwien.infosys.viepep.database.entities.VirtualMachine;
 import net.sf.javailp.Result;

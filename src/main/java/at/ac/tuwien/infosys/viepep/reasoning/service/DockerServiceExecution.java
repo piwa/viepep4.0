@@ -2,11 +2,11 @@ package at.ac.tuwien.infosys.viepep.reasoning.service;
 
 import at.ac.tuwien.infosys.viepep.database.entities.Element;
 import at.ac.tuwien.infosys.viepep.database.entities.ProcessStep;
-import at.ac.tuwien.infosys.viepep.database.entities.VirtualMachine;
 import at.ac.tuwien.infosys.viepep.database.entities.WorkflowElement;
+import at.ac.tuwien.infosys.viepep.database.entities.docker.DockerContainer;
 import at.ac.tuwien.infosys.viepep.database.inmemory.services.CacheWorkflowService;
-import at.ac.tuwien.infosys.viepep.reasoning.service.dto.InvocationResultDTO;
 import at.ac.tuwien.infosys.viepep.reasoning.optimisation.general.PlacementHelper;
+import at.ac.tuwien.infosys.viepep.reasoning.service.dto.InvocationResultDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,10 +23,10 @@ import java.util.List;
 @Component
 @Scope("prototype")
 @Slf4j
-public class ServiceExecution {
+public class DockerServiceExecution {
 
     @Autowired
-    private ServiceInvoker serviceInvoker;
+    private DockerServiceInvoker serviceInvoker;
     @Autowired
     private PlacementHelper placementHelper;
     @Autowired
@@ -36,7 +36,7 @@ public class ServiceExecution {
     private boolean simulate;
 
     @Async
-    public void startExecution(ProcessStep processStep, VirtualMachine virtualMachine) {
+    public void startExecution(ProcessStep processStep, DockerContainer dockerContainer) {
         log.info("Task-Start: " + processStep);
 
         if (simulate) {
@@ -45,7 +45,7 @@ public class ServiceExecution {
             } catch (InterruptedException e) {
             }
         } else {
-            InvocationResultDTO invoke = serviceInvoker.invoke(virtualMachine, processStep);
+            InvocationResultDTO invoke = serviceInvoker.invoke(dockerContainer, processStep);
         }
 
         Date finishedAt = new Date();

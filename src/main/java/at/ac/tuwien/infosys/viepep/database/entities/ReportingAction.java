@@ -30,17 +30,17 @@ public class ReportingAction implements Serializable {
     private String virtualMachineID;
 
     @Enumerated(EnumType.STRING)
-    private VMAction vmAction;
+    private VMDockerAction vmDockerAction;
 
     private Date timestamp;
 
     public ReportingAction() {
     }
 
-    public ReportingAction(Date date, String vmID, VMAction action) {
+    public ReportingAction(Date date, String vmID, VMDockerAction action) {
         this.timestamp = date;
         this.virtualMachineID = vmID;
-        this.vmAction = action;
+        this.vmDockerAction = action;
     }
 
 

@@ -1,18 +1,24 @@
-package at.ac.tuwien.infosys.viepep.reasoning.optimisation.impl;
+package at.ac.tuwien.infosys.viepep.reasoning.optimisation.general.impl;
 
 import at.ac.tuwien.infosys.viepep.connectors.ViePEPClientService;
+import at.ac.tuwien.infosys.viepep.connectors.ViePEPDockerControllerService;
+import at.ac.tuwien.infosys.viepep.connectors.impl.exceptions.CouldNotStopDockerException;
 import at.ac.tuwien.infosys.viepep.database.entities.*;
+import at.ac.tuwien.infosys.viepep.database.entities.docker.DockerContainer;
 import at.ac.tuwien.infosys.viepep.database.inmemory.services.CacheVirtualMachineService;
 import at.ac.tuwien.infosys.viepep.database.inmemory.services.CacheWorkflowService;
 import at.ac.tuwien.infosys.viepep.database.services.ElementDaoService;
 import at.ac.tuwien.infosys.viepep.database.services.ReportDaoService;
-import at.ac.tuwien.infosys.viepep.reasoning.optimisation.PlacementHelper;
+import at.ac.tuwien.infosys.viepep.reasoning.optimisation.general.PlacementHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Random;
 
 /**
  * Created by philippwaibel on 18/05/16.
@@ -25,6 +31,8 @@ public class PlacementHelperImpl implements PlacementHelper {
     private ElementDaoService elementDaoService;
     @Autowired
     private ViePEPClientService viePEPClientService;
+    @Autowired
+    private ViePEPDockerControllerService viePEPDockerControllerService;
     @Autowired
     private ReportDaoService reportDaoService;
     @Autowired
@@ -196,7 +204,29 @@ public class PlacementHelperImpl implements PlacementHelper {
         }
         virtualMachine.terminate();
 
-        ReportingAction report = new ReportingAction(new Date(), virtualMachine.getName(), VMAction.STOPPED);
+        ReportingAction report = new ReportingAction(new Date(), virtualMachine.getName(), VMDockerAction.STOPPED);
+        reportDaoService.save(report);
+    }
+
+    @Override
+    public void terminateDockerContainer(DockerContainer dockerContainer) {
+        if (!simulate) {
+            log.info("Terminate: " + dockerContainer);
+            try {
+                viePEPDockerControllerService.stopDocker(dockerContainer.getVirtualMachines().get(0), dockerContainer);
+            } catch (CouldNotStopDockerException e) {
+                log.error("EXCEPTION",e);
+            }
+        }
+        dockerContainer.terminate();
+
+        ReportingAction report;
+        if(dockerContainer.getVirtualMachines().size() > 0) {
+            report = new ReportingAction(new Date(), dockerContainer.getVirtualMachines().get(0).getName(), VMDockerAction.STOPPED);
+        }
+        else {
+            report = new ReportingAction(new Date(), null, VMDockerAction.STOPPED);
+        }
         reportDaoService.save(report);
     }
 

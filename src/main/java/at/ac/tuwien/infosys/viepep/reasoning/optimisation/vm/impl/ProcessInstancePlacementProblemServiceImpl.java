@@ -1,10 +1,10 @@
-package at.ac.tuwien.infosys.viepep.reasoning.optimisation.impl;
+package at.ac.tuwien.infosys.viepep.reasoning.optimisation.vm.impl;
 
 import at.ac.tuwien.infosys.viepep.database.entities.*;
 import at.ac.tuwien.infosys.viepep.database.inmemory.services.CacheVirtualMachineService;
 import at.ac.tuwien.infosys.viepep.database.inmemory.services.CacheWorkflowService;
-import at.ac.tuwien.infosys.viepep.reasoning.optimisation.PlacementHelper;
-import at.ac.tuwien.infosys.viepep.reasoning.optimisation.ProcessInstancePlacementProblemService;
+import at.ac.tuwien.infosys.viepep.reasoning.optimisation.general.PlacementHelper;
+import at.ac.tuwien.infosys.viepep.reasoning.optimisation.vm.ProcessInstancePlacementProblemService;
 import ilog.concert.IloException;
 import ilog.concert.IloNumVar;
 import ilog.cplex.IloCplex;
@@ -75,7 +75,7 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
 
 
         //DS: we need to know which types of Services/ProcessSteps exist
-        List<String> processStepTypes = new ArrayList<String>();
+        List<String> processStepTypes = new ArrayList<String>();                        // PW: not used?
         for (Element workflowInstance : getNextWorkflowInstances()) {
             addProcessStepTypesFromElement(workflowInstance, processStepTypes);
         }
@@ -98,8 +98,8 @@ public class ProcessInstancePlacementProblemServiceImpl extends NativeLibraryLoa
             nextWorkflowInstances = null;
             nextWorkflowInstances = getNextWorkflowInstances();
             getAllRunningSteps();
-            getNextAndRunningSteps();
-            for (Element nextWorkflowInstance : nextWorkflowInstances) {
+            getNextAndRunningSteps();                                       // PW: not used?
+            for (Element nextWorkflowInstance : nextWorkflowInstances) {    // already done?
                 getNextSteps(nextWorkflowInstance);
             }
         }

@@ -3,6 +3,7 @@ package at.ac.tuwien.infosys.viepep.reasoning.impl;
 import at.ac.tuwien.infosys.viepep.database.inmemory.database.InMemoryCacheImpl;
 import at.ac.tuwien.infosys.viepep.database.inmemory.services.CacheDockerService;
 import at.ac.tuwien.infosys.viepep.database.inmemory.services.CacheVirtualMachineService;
+import at.ac.tuwien.infosys.viepep.reasoning.Reasoning;
 import at.ac.tuwien.infosys.viepep.reasoning.ReasoningActivator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +23,9 @@ import java.util.concurrent.Future;
 public class ReasoningActivatorImpl implements ReasoningActivator {
 
     @Autowired
-    private Reasoning reasoning;
+    private Reasoning reasoningVmImpl;
+    @Autowired
+    private Reasoning reasoningDockerImpl;
     @Autowired
     private CacheVirtualMachineService cacheVirtualMachineService;
     @Autowired
@@ -49,11 +52,23 @@ public class ReasoningActivatorImpl implements ReasoningActivator {
 
     @Override
     public Future<Boolean> start() throws Exception {
-        return reasoning.runReasoning(new Date());
+
+        if(useDocker) {
+            return reasoningDockerImpl.runReasoning(new Date());
+        }
+        else {
+            return reasoningVmImpl.runReasoning(new Date());
+        }
+
     }
 
     @Override
     public void stop() {
-        reasoning.stop();
+        if(useDocker) {
+            reasoningDockerImpl.stop();
+        }
+        else {
+            reasoningVmImpl.stop();
+        }
     }
 }

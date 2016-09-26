@@ -4,8 +4,10 @@ import at.ac.tuwien.infosys.viepep.database.entities.ProcessStep;
 import at.ac.tuwien.infosys.viepep.database.entities.WorkflowElement;
 import at.ac.tuwien.infosys.viepep.database.inmemory.services.CacheWorkflowService;
 import at.ac.tuwien.infosys.viepep.database.services.WorkflowDaoService;
-import at.ac.tuwien.infosys.viepep.reasoning.optimisation.PlacementHelper;
-import at.ac.tuwien.infosys.viepep.reasoning.optimisation.ProcessInstancePlacementProblemService;
+import at.ac.tuwien.infosys.viepep.reasoning.Reasoning;
+import at.ac.tuwien.infosys.viepep.reasoning.optimisation.docker.DockerOptimizationResult;
+import at.ac.tuwien.infosys.viepep.reasoning.optimisation.docker.DockerProcessInstancePlacementProblem;
+import at.ac.tuwien.infosys.viepep.reasoning.optimisation.general.PlacementHelper;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.javailp.Result;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,17 +22,17 @@ import java.util.List;
 import java.util.concurrent.Future;
 
 /**
- * Created by philippwaibel on 17/05/16.
+ * Created by philippwaibel on 22/09/2016.
  */
 @Component
 @Scope("prototype")
 @Slf4j
-public class Reasoning {
+public class ReasoningDockerImpl implements Reasoning {
 
     @Autowired
-    private ProcessOptimizationResults processOptimizationResults;
+    private ProcessDockerOptimizationResults processDockerOptimizationResults;
     @Autowired
-    private ProcessInstancePlacementProblemService resourcePredictionService;
+    private DockerProcessInstancePlacementProblem resourcePredictionService;
     @Autowired
     private PlacementHelper placementHelper;
     @Autowired
@@ -44,11 +46,12 @@ public class Reasoning {
     private boolean run = true;
 
 
+    @Override
     @Async
     public Future<Boolean> runReasoning(Date date) throws InterruptedException {
         tau_t = date;
 
-        resourcePredictionService.initializeParameters();
+//        resourcePredictionService.initializeParameters();
         run = true;
 
         Result optimize = null;
@@ -141,14 +144,13 @@ public class Reasoning {
         log.info("---------tau_t_0 : " + tau_t_0 + " ------------------------");
         log.info("---------tau_t_0.time : " + tau_t_0_time + " ------------------------");
         tau_t_0 = new Date();
-        Result optimize = resourcePredictionService.optimize(tau_t_0);          // TODO call the optimization also at specific events (e.g. a new workflow is added)
+        DockerOptimizationResult optimize = resourcePredictionService.optimize(tau_t_0);          // TODO call the optimization also at specific events (e.g. a new workflow is added)
 
         if (optimize == null) {
             throw new Exception("Could not solve the Problem");
         }
 
-        log.info("Objective: " + optimize.getObjective());
-        long tau_t_1 = optimize.get("tau_t_1").longValue() * 1000;//VERY IMPORTANT,
+        long tau_t_1 = optimize.getTau_t_1();
         long difference = tau_t_1 - new Date().getTime();
         if (difference < 0) {
             difference = 0;
@@ -156,16 +158,15 @@ public class Reasoning {
         log.info("---------sleep for: " + difference / 1000 + " seconds-----------");
         log.info("---------next iteration: " + new Date(tau_t_1) + " -----------");
 
-        final Result finalOptimize = optimize;
+        final DockerOptimizationResult finalOptimize = optimize;
         final Date finalTau_t_ = tau_t_0;
 
-
-
-        processOptimizationResults.processResults(finalOptimize, finalTau_t_);
+        processDockerOptimizationResults.processResults(finalOptimize, finalTau_t_);
 
         return difference;
     }
 
+    @Override
     public void stop() {
         this.run = false;
     }
