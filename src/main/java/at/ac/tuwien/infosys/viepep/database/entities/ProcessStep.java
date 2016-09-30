@@ -19,7 +19,7 @@ import java.util.List;
 /**
  * Represents the smallest element of the workflow model.
  *
- * @author Waldemar Ankudin modified by Turgay Sahin and Mathieu Muench
+ * @author Waldemar Ankudin modified by Turgay Sahin and Mathieu Muench, Gerta Sheganaku
  */
 @XmlRootElement(name = "ProcessStep")
 @Entity(name = "ProcessStep")
@@ -38,13 +38,15 @@ public class ProcessStep extends Element {
 
     private boolean isScheduled;
     private Date scheduledStartedAt;
+    private int numberOfExecutions;
 
-    @ManyToOne//(cascade = CascadeType.ALL)
+    @ManyToOne//(cascade = CascadeType.ALL)	//TODO: CHECK
     private VirtualMachine scheduledAtVM;
-
+    
     @ManyToOne//(cascade = CascadeType.ALL)
-    private DockerContainer scheduledAtDocker;
+    private DockerContainer scheduledAtContainer;
 
+    
     private String workflowName;
 
     @XmlElementWrapper(name="restrictedVMs")
@@ -110,7 +112,7 @@ public class ProcessStep extends Element {
      * [0] Execution Time, [1] Cost, [2] Reliability, [Throughput]
      */
     public long calculateQoS() {
-        return this.serviceType.makeSpan;
+    	return getRemainingExecutionTime(new Date());
     }
 
     public boolean hasBeenExecuted() {
@@ -137,16 +139,28 @@ public class ProcessStep extends Element {
         return remaining > 0 ? remaining : serviceType.makeSpan ;
     }
 
-    public void setScheduledForExecution(boolean isScheduled, Date tau_t) {
+    public void setScheduledForExecution(boolean isScheduled, Date tau_t, VirtualMachine vm) {
         this.isScheduled = isScheduled;
         this.scheduledStartedAt = tau_t;
+        this.scheduledAtVM = vm;
     }
 
+    public void setScheduledForExecution(boolean isScheduled, Date tau_t, DockerContainer container) {
+        this.isScheduled = isScheduled;
+        this.scheduledStartedAt = tau_t;
+        this.scheduledAtContainer = container;
+    }
     @Override
     public ProcessStep getLastExecutedElement() {
         return this;
     }
-
+    
+    public void setStartDate(Date date){
+    	this.startDate = date;
+    	if(date != null) {
+    		numberOfExecutions++;
+    	}
+    }
 
     @Override
     public String toString() {
@@ -155,6 +169,7 @@ public class ProcessStep extends Element {
         String startDateformat = startDate != null ? formatter.format(startDate) : null;
         String finishedAtformat = finishedAt != null ? formatter.format(finishedAt) : null;
         String vmName = scheduledAtVM != null ? scheduledAtVM.getName() : null;
+        String dockerName = scheduledAtContainer != null ? scheduledAtContainer.getName() : null;
         return "ProcessStep{" +
                 "id='" + id + '\'' +
                 ", name='" + name + '\'' +
@@ -162,6 +177,7 @@ public class ProcessStep extends Element {
                 ", startDate=" + startDateformat +
                 ", finishedAt=" + finishedAtformat +
                 ", scheduledAtVM=" + vmName +
+                ", scheduledAtContainer=" + dockerName +
                 ", lastElement=" + isLastElement() +
                 '}';
     }
@@ -178,11 +194,14 @@ public class ProcessStep extends Element {
         return objects;
     }
 
-
+    
+    
+    @Deprecated
     public void reset() {
         this.setFinishedAt(null);
         this.setStartDate(null);
         this.setScheduledAtVM(null);
+        this.setScheduledAtContainer(null);
         this.setHasBeenExecuted(false);
         this.setScheduled(false);
         this.setScheduledStartedAt(null);

@@ -33,26 +33,31 @@ public class ElementTest {
     }
 
     private Element createSequenceWorkflow(Date tau_t, String id) {
-        Element workflow = new WorkflowElement(id, tau_t.getTime() + 1000 * 200);
+        Element workflow = new WorkflowElement(id, tau_t.getTime() + 1000 * 200, 200);
         Sequence seq = new Sequence(id + "-seq");
         ProcessStep step1 = new ProcessStep(id + ".0", true, ServiceType.Task1, workflow.getName());
-        step1.setFinishedAt(tau_t);
         seq.addElement(step1);
 
         ProcessStep step2 = new ProcessStep(id + ".1", true, ServiceType.Task2, workflow.getName());
-        step2.setFinishedAt(new Date(tau_t.getTime() + 10000L));
         seq.addElement(step2);
 
         ProcessStep step3 = new ProcessStep(id + ".2", true, ServiceType.Task3, workflow.getName());
-        step3.setFinishedAt(new Date(tau_t.getTime() + 20000L));
         seq.addElement(step3);
 
+        ProcessStep step4 = new ProcessStep(id + ".3", true, ServiceType.Task4, workflow.getName());
+        seq.addElement(step4);
+        
         workflow.addElement(seq);
+
+        step1.setFinishedAt(tau_t);
+        step2.setFinishedAt(new Date(tau_t.getTime() + 10000L));
+        step3.setFinishedAt(new Date(tau_t.getTime() + 20000L));
+        
         return workflow;
     }
 
     private Element createAndWorkflow(Date tau_t, String id, boolean first, boolean second1, boolean second2, boolean third) {
-        Element workflow = new WorkflowElement(id + "", tau_t.getTime() + 1000 * 120);
+        Element workflow = new WorkflowElement(id + "", tau_t.getTime() + 1000 * 120, 200);
         Sequence seq = new Sequence(id + "-seq");
         ProcessStep step0 = new ProcessStep(id + ".0", first, ServiceType.Task1, workflow.getName());
         step0.setFinishedAt(new Date(tau_t.getTime() + 10000L));
@@ -78,7 +83,7 @@ public class ElementTest {
     }
 
     private Element createXORWorkflow(Date tau_t, String id) {
-        Element workflow = new WorkflowElement(id + "", new Date().getTime() + 1000 * 120);
+        Element workflow = new WorkflowElement(id + "", new Date().getTime() + 1000 * 120, 200);
 
         Sequence seq = new Sequence(id + "-seq");
         ProcessStep step0 = new ProcessStep(id + ".0", true, ServiceType.Task1, workflow.getName());

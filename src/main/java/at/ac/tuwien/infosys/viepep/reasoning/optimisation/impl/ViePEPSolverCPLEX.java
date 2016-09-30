@@ -1,4 +1,4 @@
-package at.ac.tuwien.infosys.viepep.reasoning.optimisation.vm.impl;
+package at.ac.tuwien.infosys.viepep.reasoning.optimisation.impl;
 
 import ilog.concert.IloException;
 import ilog.concert.IloLinearNumExpr;
@@ -122,6 +122,9 @@ public class ViePEPSolverCPLEX extends SolverCPLEX {
                 }
             }
 
+            System.out.println("\n##### ----- CPLEX SOLVER STATUS: "+ cplex.getStatus()+"\n");
+
+            
             cplex.end();
 
             return result;

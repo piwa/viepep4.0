@@ -8,6 +8,7 @@ import javax.persistence.Entity;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlRootElement;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -20,21 +21,38 @@ import java.util.List;
 @Getter
 @Setter
 public class WorkflowElement extends Element {
-
+	
     private Date arrivedAt;
+    private double penalty = 200;
 
-    public WorkflowElement(String name, long date) {
+    public WorkflowElement(String name, long date, double penalty) {
         this.name = name;
         this.elements = new ArrayList<>();
         this.deadline = date;
+        this.penalty=penalty;
     }
 
     public WorkflowElement() {
         elements = new ArrayList<>();
     }
 
-    public long calculateQoS() {
-        return elements.get(0).calculateQoS();
+//    public long calculateQoS() {
+//        return elements.get(0).calculateQoS();
+//    }
+    
+    @Override
+    public int getNumberOfExecutions() {
+    	return elements.get(elements.size()-1).getNumberOfExecutions();
+    }
+    
+    public long calculateQoS() { //calculateQoS() {
+        long executionTime = 0;
+        for (Element element : elements) {
+        	if(element.getFinishedAt() == null){
+                executionTime += element.calculateQoS();
+        	}
+        }
+        return executionTime;
     }
 
     @Override
@@ -69,5 +87,9 @@ public class WorkflowElement extends Element {
                 ", deadline=" + deadline +
                 '}';
     }
+
+	public double getPenaltyPerViolation() {
+		return penalty;
+	}
 
 }

@@ -2,9 +2,12 @@ package at.ac.tuwien.infosys.viepep.rest.impl;
 
 import at.ac.tuwien.infosys.viepep.database.entities.*;
 import at.ac.tuwien.infosys.viepep.database.inmemory.services.CacheWorkflowService;
-import at.ac.tuwien.infosys.viepep.reasoning.optimisation.vm.impl.ProcessInstancePlacementProblemServiceImpl;
+import at.ac.tuwien.infosys.viepep.reasoning.ReasoningActivator;
+import at.ac.tuwien.infosys.viepep.reasoning.impl.ReasoningImpl;
+import at.ac.tuwien.infosys.viepep.reasoning.optimisation.impl.BasicProcessInstancePlacementProblemServiceImpl;
 import at.ac.tuwien.infosys.viepep.rest.WorkflowRestService;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,7 +20,7 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * Created by philippwaibel on 17/05/16.
+ * Created by philippwaibel on 17/05/16. edited by Gerta Sheganaku
  */
 @RestController
 @Slf4j
@@ -25,6 +28,9 @@ public class WorkflowRestServiceImpl implements WorkflowRestService {
 
     @Autowired
     private CacheWorkflowService cacheWorkflowService;
+
+    @Autowired
+    private ReasoningImpl reasoning; 
 
     @RequestMapping( value="/", method = RequestMethod.GET, consumes = MediaType.APPLICATION_XML_VALUE)
     public List<WorkflowElement> getWorkflows() throws Exception {
@@ -34,26 +40,33 @@ public class WorkflowRestServiceImpl implements WorkflowRestService {
     @Override
     @RequestMapping( value="/addWorkflowRequest", method = RequestMethod.POST, consumes = MediaType.APPLICATION_XML_VALUE)
     public void addWorkflow(@RequestBody WorkflowElement workflowElement) {
-        cacheWorkflowService.addWorkflowInstance(workflowElement);
+        Date date = new Date();
+        log.info("Recieved 1 new WorkflowElement");
+        workflowElement.setArrivedAt(date);
+        update(workflowElement);
+        log.info("add new WorkflowElement: " + workflowElement.toString());
+    	cacheWorkflowService.addWorkflowInstance(workflowElement);
+        log.info("Done: Add new WorkflowElement: " + workflowElement.toString());
+        reasoning.setNextOptimizeTimeNow();
     }
 
     @Override
     @RequestMapping( value="/addWorkflowRequests", method = RequestMethod.POST, consumes = MediaType.APPLICATION_XML_VALUE)
     public void addWorkflow(@RequestBody WorkflowElements workflowElement) {
 
-        synchronized (ProcessInstancePlacementProblemServiceImpl.SYNC_OBJECT) {
+        synchronized (BasicProcessInstancePlacementProblemServiceImpl.SYNC_OBJECT) {
 
             try {
                 Date date = new Date();
                 log.info("Recieved new WorkflowElements: " + workflowElement.getWorkflowElements().size());
                 for (WorkflowElement element : workflowElement.getWorkflowElements()) {
-
                     element.setArrivedAt(date);
                     update(element);
                     log.info("add new WorkflowElement: " + element.toString());
                     cacheWorkflowService.addWorkflowInstance(element);
                     log.info("Done: Add new WorkflowElement: " + element.toString());
                 }
+                reasoning.setNextOptimizeTimeNow();
             } catch (Exception ex) {
                 log.error("EXCEPTION", ex);
             }
@@ -79,12 +92,14 @@ public class WorkflowRestServiceImpl implements WorkflowRestService {
                 setAllOthersToNotExecuted(element2.getElements(), subelement1);
                 element.getParent().setNextXOR(subelement1);
             } else if (element instanceof LoopConstruct) {
-                ((LoopConstruct) element).setNumberOfIterationsInWorstCase(1);
-                ((LoopConstruct) element).setIterations(1);
-            }
+                ((LoopConstruct) element).setNumberOfIterationsInWorstCase(3);
+            	Random random = new Random();
+                int i = random.nextInt(((LoopConstruct) element).getNumberOfIterationsInWorstCase())+1;
+            	((LoopConstruct) element).setNumberOfIterationsToBeExecuted(i);
+               // ((LoopConstruct) element).setIterations(1);
+            }  //TODO: CHECK just ignore loops? 
             update(element);
         }
-
     }
 
     private void setAllOthersToNotExecuted(List<Element> elements, Element ignore) {
@@ -101,5 +116,4 @@ public class WorkflowRestServiceImpl implements WorkflowRestService {
             }
         }
     }
-
 }
