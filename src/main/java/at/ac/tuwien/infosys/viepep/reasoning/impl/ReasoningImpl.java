@@ -75,15 +75,12 @@ public class ReasoningImpl {
                 		lastTerminateCheckTime.set(now);
 
                 		List<WorkflowElement> workflows = cacheWorkflowService.getRunningWorkflowInstances();
-                		log.info("  ***************** RunningWFL Instances (" + workflows.size() + " running) WAS EMPTY? : " + workflows.isEmpty());
-//                        for(WorkflowElement workflow: workflows) {
-//                        	System.out.println("\n running workflow: " + workflow);
-//                        }
+                		log.info("Running workflow instances (" + workflows.size() + " running)");// WAS EMPTY? : " + workflows.isEmpty());
 
                         if(workflows.isEmpty()) {
                             if(emptyTime == null) {
                             	emptyTime = new Date();
-                            };
+                            }
                             log.info("Time first empty: " + emptyTime);
                         }
                         else {
@@ -181,9 +178,7 @@ public class ReasoningImpl {
 
         log.info("Objective: " + optimize.getObjective());
         long tau_t_1 = optimize.get("tau_t_1").longValue() * 1000;//VERY IMPORTANT,
-        System.out.println("tau_t_1 was calculted as: "+ new Date(tau_t_1) );
-        System.out.println("Execution time ");
-        
+        log.info("tau_t_1 was calculted as: "+ new Date(tau_t_1) );
         
         Future<Boolean> processed = processOptimizationResults.processResults(optimize, tau_t_0);
         processed.get();

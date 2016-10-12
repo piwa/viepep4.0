@@ -33,7 +33,7 @@ public class SimpleDockerProcessInstancePlacementProblemServiceImpl implements P
 
     private VMType defaultVM = VMType.AWS_QUAD_CORE;
 
-    private long tau_t_1 = 60 * 1000;
+    private long tau_t_1 = 30 * 1000;
 
 
     @Override

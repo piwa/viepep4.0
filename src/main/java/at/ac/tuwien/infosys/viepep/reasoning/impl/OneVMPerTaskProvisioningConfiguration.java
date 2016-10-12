@@ -2,7 +2,7 @@ package at.ac.tuwien.infosys.viepep.reasoning.impl;
 
 import at.ac.tuwien.infosys.viepep.reasoning.ProcessOptimizationResults;
 import at.ac.tuwien.infosys.viepep.reasoning.optimisation.ProcessInstancePlacementProblemService;
-import at.ac.tuwien.infosys.viepep.reasoning.optimisation.impl.SimpleDockerProcessInstancePlacementProblemServiceImpl;
+import at.ac.tuwien.infosys.viepep.reasoning.optimisation.impl.OneVMPerTaskImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,19 +14,19 @@ import org.springframework.context.annotation.PropertySource;
  */
 @Slf4j
 @Configuration
-@Profile("simple-docker")
+@Profile("OneVMPerTask-docker")
 @PropertySource(value = "application-docker.properties")
-public class SimpleDockerOptimizerConfiguration {
+public class OneVMPerTaskProvisioningConfiguration {
 	
 	@Bean
 	public ProcessInstancePlacementProblemService initializeParameters() {
-		log.info("Profile docker!!");
-		return new SimpleDockerProcessInstancePlacementProblemServiceImpl();
+		log.info("Profile OneVMPerTask");
+		return new OneVMPerTaskImpl();
 	}
 	
 	@Bean
 	public ProcessOptimizationResults processResults() {
-		log.info("Profile docker!!");
+		log.info("Profile OneVMPerTask");
 		return new SimpleDockerProcessOptimizationResults();
 	}
 

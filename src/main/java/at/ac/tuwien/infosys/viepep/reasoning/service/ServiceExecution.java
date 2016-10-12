@@ -1,16 +1,14 @@
 package at.ac.tuwien.infosys.viepep.reasoning.service;
 
-import at.ac.tuwien.infosys.viepep.database.entities.Element;
 import at.ac.tuwien.infosys.viepep.database.entities.ProcessStep;
 import at.ac.tuwien.infosys.viepep.database.entities.VirtualMachine;
 import at.ac.tuwien.infosys.viepep.database.entities.WorkflowElement;
 import at.ac.tuwien.infosys.viepep.database.entities.docker.DockerContainer;
 import at.ac.tuwien.infosys.viepep.database.inmemory.services.CacheWorkflowService;
-import at.ac.tuwien.infosys.viepep.reasoning.service.dto.InvocationResultDTO;
 import at.ac.tuwien.infosys.viepep.reasoning.impl.ReasoningImpl;
 import at.ac.tuwien.infosys.viepep.reasoning.optimisation.PlacementHelper;
+import at.ac.tuwien.infosys.viepep.reasoning.service.dto.InvocationResultDTO;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -80,6 +78,10 @@ public class ServiceExecution{
         processStep.setFinishedAt(finishedAt);
 
 		log.info("Task-Done: " + processStep);
+
+        if(processStep.getScheduledAtContainer() != null) {
+            placementHelper.stopDockerContainer(processStep.getScheduledAtContainer());
+        }
 
         if (processStep.isLastElement()) {
 

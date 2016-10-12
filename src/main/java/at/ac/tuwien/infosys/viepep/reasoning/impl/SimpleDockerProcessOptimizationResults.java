@@ -163,7 +163,7 @@ public class SimpleDockerProcessOptimizationResults implements ProcessOptimizati
         
         
         for (DockerContainer container : containersToDeploy) {
-        	System.out.println("PROCESSING A VALUES FOR CONTAINER: "+container);
+            log.info("PROCESSING A VALUES FOR CONTAINER: "+container);
             processAYValues(optimize, tau_t, vmsToStart, scheduledForExecution, y, a, vMs, container);
         }
     }
@@ -240,6 +240,14 @@ public class SimpleDockerProcessOptimizationResults implements ProcessOptimizati
                 	vmsToStart.add(virtualMachine);
                 }
             }
+
+            if(virtualMachine.isLeased() && virtualMachine.isStarted() && virtualMachine.getDeployedContainers().size() != 0) {
+                Date date = new Date();
+                if (virtualMachine.getToBeTerminatedAt() != null) {
+                    date = virtualMachine.getToBeTerminatedAt();
+                }
+                virtualMachine.setToBeTerminatedAt(new Date(date.getTime() + (placementHelper.getLeasingDuration(virtualMachine))));
+            }
         }
     }
 
@@ -269,8 +277,7 @@ public class SimpleDockerProcessOptimizationResults implements ProcessOptimizati
             	int a = toInt(optimize.get(decisionVariableA));
             	
                 if (a!=1) {
-    				System.out.println("CONTAINER IS CLOSED: "+ container + " it was on VM: " + container.getVirtualMachine() + " VarA " + decisionVariableA);
-                	System.out.println("VM    :" +vm);
+    				log.info("Container is closed: "+ container + " from VM: " + container.getVirtualMachine());
     				placementHelper.stopDockerContainer(container);
     				
                 }
